@@ -67,5 +67,9 @@ export default function middleware(
 }
 
 export const config = {
-  matcher: ['/((?!.+\\.[\\w]+$|_next|monitoring).*)', '/', '/(api|trpc)(.*)'], // Also exclude tunnelRoute used in Sentry from the matcher
+  matcher: [
+    '/((?!.+\\.[\\w]+$|_next|monitoring|api/webhooks/clerk).*)',
+    '/',
+    '/(api|trpc)(.*)',
+  ], // Also exclude tunnelRoute used in Sentry from the matcher
 };

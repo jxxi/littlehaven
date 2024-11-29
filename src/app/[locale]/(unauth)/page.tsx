@@ -39,12 +39,12 @@ export default function IndexPage(props: { params: { locale: string } }) {
           Baby Bumpers
         </h1>
         <p className="mb-8 text-xl text-gray-700">
-          Your lifelong community for the journey of motherhood
+          Your lifelong community for the journey of parenthood
         </p>
         <div className="mb-12 space-y-6">
           <Feature
             title="Matched by Due Date"
-            description="Connect with moms-to-be at the same stage of pregnancy"
+            description="Connect with parents-to-be at the same stage of pregnancy"
           />
           <Feature
             title="Grow Together"
@@ -56,7 +56,7 @@ export default function IndexPage(props: { params: { locale: string } }) {
           />
         </div>
         <Link
-          href="/auth/signup"
+          href="/sign-up"
           className="inline-flex items-center rounded-full bg-black px-6 py-2 text-lg font-semibold text-white transition duration-300 hover:bg-gray-800"
         >
           Join Your Bump Buddies
