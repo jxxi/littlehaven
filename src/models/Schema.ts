@@ -21,7 +21,7 @@ export const serversSchema = pgTable('servers', {
 });
 
 export const usersSchema = pgTable('users', {
-  userId: bigint('user_id', { mode: 'number' }).primaryKey(),
+  userId: varchar('user_id', { length: 100 }).primaryKey(),
   username: varchar('username', { length: 32 }).notNull(),
   bio: varchar('bio', { length: 100 }),
   joinedAt: timestamp('joined_at', { mode: 'date' }).defaultNow().notNull(),
