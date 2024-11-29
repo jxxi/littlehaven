@@ -20,12 +20,18 @@ export const serversSchema = pgTable('servers', {
   description: text('description'),
 });
 
+export type InsertServer = typeof serversSchema.$inferInsert;
+export type SelectServer = typeof serversSchema.$inferSelect;
+
 export const usersSchema = pgTable('users', {
-  userId: bigint('user_id', { mode: 'number' }).primaryKey(),
+  userId: varchar('user_id', { length: 100 }).primaryKey(),
   username: varchar('username', { length: 32 }).notNull(),
   bio: varchar('bio', { length: 100 }),
   joinedAt: timestamp('joined_at', { mode: 'date' }).defaultNow().notNull(),
 });
+
+export type InsertUser = typeof usersSchema.$inferInsert;
+export type SelectUser = typeof usersSchema.$inferSelect;
 
 export const rolesSchema = pgTable('roles', {
   roleId: bigint('role_id', { mode: 'number' }).primaryKey(),
@@ -41,6 +47,9 @@ export const rolesSchema = pgTable('roles', {
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
 });
 
+export type InsertRole = typeof rolesSchema.$inferInsert;
+export type SelectRole = typeof rolesSchema.$inferSelect;
+
 export const channelsSchema = pgTable('channels', {
   channelId: bigint('channel_id', { mode: 'number' }).primaryKey(),
   serverId: bigint('server_id', { mode: 'number' }).references(
@@ -52,13 +61,12 @@ export const channelsSchema = pgTable('channels', {
   position: integer('position'),
   topic: text('topic'),
   isNsfw: boolean('is_nsfw').default(false),
-  parentId: bigint('parent_id', { mode: 'number' }).references(
-    () => channelsSchema.channelId,
-    { onDelete: 'set null' },
-  ),
   rateLimitPerUser: integer('rate_limit_per_user').default(0),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
 });
+
+export type InsertChannel = typeof channelsSchema.$inferInsert;
+export type SelectChannel = typeof channelsSchema.$inferSelect;
 
 export const channelPermissionsSchema = pgTable(
   'channel_permissions',
@@ -83,6 +91,11 @@ export const channelPermissionsSchema = pgTable(
   }),
 );
 
+export type InsertChannelPermission =
+  typeof channelPermissionsSchema.$inferInsert;
+export type SelectChannelPermission =
+  typeof channelPermissionsSchema.$inferSelect;
+
 export const messagesSchema = pgTable('messages', {
   messageId: bigint('message_id', { mode: 'number' }).primaryKey(),
   channelId: bigint('channel_id', { mode: 'number' })
@@ -94,10 +107,10 @@ export const messagesSchema = pgTable('messages', {
   isTts: boolean('is_tts').default(false),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   editedAt: timestamp('edited_at', { mode: 'date' }),
-  referencedMessageId: bigint('referenced_message_id', {
-    mode: 'number',
-  }).references(() => messagesSchema.messageId, { onDelete: 'set null' }),
 });
+
+export type InsertMessages = typeof messagesSchema.$inferInsert;
+export type SelectMessages = typeof messagesSchema.$inferSelect;
 
 export const attachmentsSchema = pgTable('attachments', {
   attachmentId: bigint('attachment_id', { mode: 'number' }).primaryKey(),
@@ -110,6 +123,9 @@ export const attachmentsSchema = pgTable('attachments', {
   proxyUrl: text('proxy_url'),
   contentType: varchar('content_type', { length: 100 }),
 });
+
+export type InsertAttachment = typeof attachmentsSchema.$inferInsert;
+export type SelectAttachment = typeof attachmentsSchema.$inferSelect;
 
 export const reactionsSchema = pgTable(
   'reactions',
@@ -126,6 +142,9 @@ export const reactionsSchema = pgTable(
     pk: primaryKey(table.messageId, table.userId, table.emoji),
   }),
 );
+
+export type InsertReaction = typeof reactionsSchema.$inferInsert;
+export type SelectReaction = typeof reactionsSchema.$inferSelect;
 
 export const serverMembersSchema = pgTable(
   'server_members',
@@ -145,6 +164,9 @@ export const serverMembersSchema = pgTable(
   }),
 );
 
+export type InsertServerMember = typeof serverMembersSchema.$inferInsert;
+export type SelectServerMember = typeof serverMembersSchema.$inferSelect;
+
 export const memberRolesSchema = pgTable(
   'member_roles',
   {
@@ -159,6 +181,9 @@ export const memberRolesSchema = pgTable(
     pk: (table.serverId, table.userId, table.roleId),
   }),
 );
+
+export type InsertMemberRoles = typeof memberRolesSchema.$inferInsert;
+export type SelectMemberRoles = typeof memberRolesSchema.$inferSelect;
 
 export const invitesSchema = pgTable('invites', {
   inviteCode: varchar('invite_code', { length: 10 }).primaryKey(),
@@ -177,41 +202,5 @@ export const invitesSchema = pgTable('invites', {
   isTemporary: boolean('is_temporary').default(false),
 });
 
-// export const organizationSchema = pgTable(
-//   'organization',
-//   {
-//     id: text('id').primaryKey(),
-//     stripeCustomerId: text('stripe_customer_id'),
-//     stripeSubscriptionId: text('stripe_subscription_id'),
-//     stripeSubscriptionPriceId: text('stripe_subscription_price_id'),
-//     stripeSubscriptionStatus: text('stripe_subscription_status'),
-//     stripeSubscriptionCurrentPeriodEnd: bigint(
-//       'stripe_subscription_current_period_end',
-//       { mode: 'number' },
-//     ),
-//     updatedAt: timestamp('updated_at', { mode: 'date' })
-//       .defaultNow()
-//       .$onUpdate(() => new Date())
-//       .notNull(),
-//     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-//   },
-//   (table) => {
-//     return {
-//       stripeCustomerIdIdx: uniqueIndex('stripe_customer_id_idx').on(
-//         table.stripeCustomerId,
-//       ),
-//     };
-//   },
-// );
-
-// export const todoSchema = pgTable('todo', {
-//   id: serial('id').primaryKey(),
-//   ownerId: text('owner_id').notNull(),
-//   title: text('title').notNull(),
-//   message: text('message').notNull(),
-//   updatedAt: timestamp('updated_at', { mode: 'date' })
-//     .defaultNow()
-//     .$onUpdate(() => new Date())
-//     .notNull(),
-//   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-// });
+export type InsertInvite = typeof invitesSchema.$inferInsert;
+export type SelectInvite = typeof invitesSchema.$inferSelect;

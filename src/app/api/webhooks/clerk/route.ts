@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     try {
       await db.insert(usersSchema).values({
         userId: id, // Use Clerk's user ID
-        name: username || null,
+        username: username || '',
       });
       return new Response('User created successfully', {
         status: 200,
