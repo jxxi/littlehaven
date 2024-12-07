@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1721929095371,
-      "tag": "0000_init_db",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1733348588375,
-      "tag": "0001_clear_princess_powerful",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1733352189793,
-      "tag": "0002_nappy_randall",
+      "when": 1733524499177,
+      "tag": "0000_eager_lilith",
       "breakpoints": true
     }
   ]

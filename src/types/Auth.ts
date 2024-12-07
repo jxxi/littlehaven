@@ -1,14 +1,15 @@
 import type { EnumValues } from './Enum';
 
-export const ORG_ROLE = {
-  ADMIN: 'org:admin',
-  MEMBER: 'org:member',
+export const CIRCLE_ROLE = {
+  ADMIN: 'circle:admin',
+  MEMBER: 'circle:member',
+  MOD: 'circle:moderator',
 } as const;
 
-export type OrgRole = EnumValues<typeof ORG_ROLE>;
+export type CircleRole = EnumValues<typeof CIRCLE_ROLE>;
 
-export const ORG_PERMISSION = {
-  // Add Organization Permissions here
+export const CIRCLE_PERMISSION = {
+  // Add Circle Permissions here
 } as const;
 
-export type OrgPermission = EnumValues<typeof ORG_PERMISSION>;
+export type OrgPermission = EnumValues<typeof CIRCLE_PERMISSION>;

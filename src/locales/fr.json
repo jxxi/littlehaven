@@ -108,10 +108,6 @@
     "title_bar": "Profil utilisateur",
     "title_bar_description": "Afficher et gérer votre profil utilisateur"
   },
-  "OrganizationProfile": {
-    "title_bar": "Gestion de l’organisation",
-    "title_bar_description": "Gérer votre organisation"
-  },
   "Billing": {
     "title_bar": "Facturation",
     "title_bar_description": "Gérer votre facturation et votre abonnement",

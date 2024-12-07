@@ -6,11 +6,12 @@ import {
   primaryKey,
   text,
   timestamp,
+  uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
 
-export const serversSchema = pgTable('servers', {
-  serverId: bigint('server_id', { mode: 'number' }).primaryKey(),
+export const circlesSchema = pgTable('circles', {
+  circleId: uuid('circle_id').defaultRandom().primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
   iconUrl: text('icon_url'),
   ownerId: bigint('owner_id', { mode: 'number' }).notNull(),
@@ -20,8 +21,8 @@ export const serversSchema = pgTable('servers', {
   description: text('description'),
 });
 
-export type InsertServer = typeof serversSchema.$inferInsert;
-export type SelectServer = typeof serversSchema.$inferSelect;
+export type InsertCircle = typeof circlesSchema.$inferInsert;
+export type SelectCircle = typeof circlesSchema.$inferSelect;
 
 export const usersSchema = pgTable('users', {
   userId: varchar('user_id', { length: 100 }).primaryKey(),
@@ -35,9 +36,9 @@ export type SelectUser = typeof usersSchema.$inferSelect;
 
 export const rolesSchema = pgTable('roles', {
   roleId: bigint('role_id', { mode: 'number' }).primaryKey(),
-  serverId: bigint('server_id', { mode: 'number' })
-    .notNull()
-    .references(() => serversSchema.serverId, { onDelete: 'cascade' }),
+  circleId: uuid('circle_id').references(() => circlesSchema.circleId, {
+    onDelete: 'cascade',
+  }),
   name: varchar('name', { length: 100 }).notNull(),
   color: integer('color'),
   position: integer('position').notNull(),
@@ -50,12 +51,11 @@ export const rolesSchema = pgTable('roles', {
 export type InsertRole = typeof rolesSchema.$inferInsert;
 export type SelectRole = typeof rolesSchema.$inferSelect;
 
-export const channelsSchema = pgTable('channels', {
-  channelId: bigint('channel_id', { mode: 'number' }).primaryKey(),
-  serverId: bigint('server_id', { mode: 'number' }).references(
-    () => serversSchema.serverId,
-    { onDelete: 'cascade' },
-  ),
+export const channelSchema = pgTable('channels', {
+  channelId: uuid('channel_id').defaultRandom().primaryKey(),
+  circleId: uuid('circle_id').references(() => circlesSchema.circleId, {
+    onDelete: 'cascade',
+  }),
   name: varchar('name', { length: 100 }).notNull(),
   type: varchar('type', { length: 20 }).notNull(),
   position: integer('position'),
@@ -65,16 +65,15 @@ export const channelsSchema = pgTable('channels', {
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
 });
 
-export type InsertChannel = typeof channelsSchema.$inferInsert;
-export type SelectChannel = typeof channelsSchema.$inferSelect;
+export type Insertchannel = typeof channelSchema.$inferInsert;
+export type Selectchannel = typeof channelSchema.$inferSelect;
 
 export const channelPermissionsSchema = pgTable(
   'channel_permissions',
   {
-    channelId: bigint('channel_id', { mode: 'number' }).references(
-      () => channelsSchema.channelId,
-      { onDelete: 'cascade' },
-    ),
+    channelId: uuid('channel_id').references(() => channelSchema.channelId, {
+      onDelete: 'cascade',
+    }),
     roleId: bigint('role_id', { mode: 'number' }).references(
       () => rolesSchema.roleId,
       { onDelete: 'cascade' },
@@ -97,10 +96,10 @@ export type SelectChannelPermission =
   typeof channelPermissionsSchema.$inferSelect;
 
 export const messagesSchema = pgTable('messages', {
-  messageId: bigint('message_id', { mode: 'number' }).primaryKey(),
-  channelId: bigint('channel_id', { mode: 'number' })
+  messageId: uuid('message_id').defaultRandom().primaryKey(),
+  channelId: uuid('channel_id')
     .notNull()
-    .references(() => channelsSchema.channelId, { onDelete: 'cascade' }),
+    .references(() => channelSchema.channelId, { onDelete: 'cascade' }),
   authorId: bigint('author_id', { mode: 'number' }).notNull(),
   content: text('content'),
   isPinned: boolean('is_pinned').default(false),
@@ -113,8 +112,8 @@ export type InsertMessages = typeof messagesSchema.$inferInsert;
 export type SelectMessages = typeof messagesSchema.$inferSelect;
 
 export const attachmentsSchema = pgTable('attachments', {
-  attachmentId: bigint('attachment_id', { mode: 'number' }).primaryKey(),
-  messageId: bigint('message_id', { mode: 'number' })
+  attachmentId: uuid('attachment_id').defaultRandom().primaryKey(),
+  messageId: uuid('message_id')
     .notNull()
     .references(() => messagesSchema.messageId, { onDelete: 'cascade' }),
   filename: varchar('filename', { length: 255 }).notNull(),
@@ -130,10 +129,9 @@ export type SelectAttachment = typeof attachmentsSchema.$inferSelect;
 export const reactionsSchema = pgTable(
   'reactions',
   {
-    messageId: bigint('message_id', { mode: 'number' }).references(
-      () => messagesSchema.messageId,
-      { onDelete: 'cascade' },
-    ),
+    messageId: uuid('message_id').references(() => messagesSchema.messageId, {
+      onDelete: 'cascade',
+    }),
     userId: bigint('user_id', { mode: 'number' }),
     emoji: varchar('emoji', { length: 32 }),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
@@ -146,13 +144,12 @@ export const reactionsSchema = pgTable(
 export type InsertReaction = typeof reactionsSchema.$inferInsert;
 export type SelectReaction = typeof reactionsSchema.$inferSelect;
 
-export const serverMembersSchema = pgTable(
-  'server_members',
+export const circleMembersSchema = pgTable(
+  'circle_members',
   {
-    serverId: bigint('server_id', { mode: 'number' }).references(
-      () => serversSchema.serverId,
-      { onDelete: 'cascade' },
-    ),
+    circleId: uuid('circle_id').references(() => circlesSchema.circleId, {
+      onDelete: 'cascade',
+    }),
     userId: bigint('user_id', { mode: 'number' }),
     nickname: varchar('nickname', { length: 32 }),
     joinedAt: timestamp('joined_at', { mode: 'date' }).defaultNow().notNull(),
@@ -160,17 +157,17 @@ export const serverMembersSchema = pgTable(
     isMuted: boolean('is_muted').default(false),
   },
   (table) => ({
-    pk: (table.serverId, table.userId),
+    pk: (table.circleId, table.userId),
   }),
 );
 
-export type InsertServerMember = typeof serverMembersSchema.$inferInsert;
-export type SelectServerMember = typeof serverMembersSchema.$inferSelect;
+export type InsertCircleMember = typeof circleMembersSchema.$inferInsert;
+export type SelectCircleMember = typeof circleMembersSchema.$inferSelect;
 
 export const memberRolesSchema = pgTable(
   'member_roles',
   {
-    serverId: bigint('server_id', { mode: 'number' }),
+    circleId: uuid('circle_id'),
     userId: bigint('user_id', { mode: 'number' }),
     roleId: bigint('role_id', { mode: 'number' }).references(
       () => rolesSchema.roleId,
@@ -178,7 +175,7 @@ export const memberRolesSchema = pgTable(
     ),
   },
   (table) => ({
-    pk: (table.serverId, table.userId, table.roleId),
+    pk: (table.circleId, table.userId, table.roleId),
   }),
 );
 
@@ -187,12 +184,12 @@ export type SelectMemberRoles = typeof memberRolesSchema.$inferSelect;
 
 export const invitesSchema = pgTable('invites', {
   inviteCode: varchar('invite_code', { length: 10 }).primaryKey(),
-  serverId: bigint('server_id', { mode: 'number' })
+  circleId: uuid('circle_id')
     .notNull()
-    .references(() => serversSchema.serverId, { onDelete: 'cascade' }),
-  channelId: bigint('channel_id', { mode: 'number' })
+    .references(() => circlesSchema.circleId, { onDelete: 'cascade' }),
+  channelId: uuid('channel_id')
     .notNull()
-    .references(() => channelsSchema.channelId, { onDelete: 'cascade' }),
+    .references(() => channelSchema.channelId, { onDelete: 'cascade' }),
   inviterId: bigint('inviter_id', { mode: 'number' }).notNull(),
   maxUses: integer('max_uses'),
   maxAge: integer('max_age'),

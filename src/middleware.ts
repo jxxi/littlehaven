@@ -1,9 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import {
-  type NextFetchEvent,
-  type NextRequest,
-  NextResponse,
-} from 'next/server';
+import { type NextFetchEvent, type NextRequest } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 
 import { AllLocales, AppConfig } from './utils/AppConfig';
@@ -44,20 +40,18 @@ export default function middleware(
           unauthenticatedUrl: signInUrl.toString(),
         });
       }
+      // if (
+      //   authObj.userId &&
+      //   req.nextUrl.pathname.includes('/dashboard') &&
+      //   !req.nextUrl.pathname.endsWith('/circle-selection')
+      // ) {
+      //   const circleSelection = new URL(
+      //     '/onboarding/circle-selection',
+      //     req.url,
+      //   );
 
-      if (
-        authObj.userId &&
-        !authObj.orgId &&
-        req.nextUrl.pathname.includes('/dashboard') &&
-        !req.nextUrl.pathname.endsWith('/organization-selection')
-      ) {
-        const orgSelection = new URL(
-          '/onboarding/organization-selection',
-          req.url,
-        );
-
-        return NextResponse.redirect(orgSelection);
-      }
+      //   return NextResponse.redirect(circleSelection);
+      // }
 
       return intlMiddleware(req);
     })(request, event);
@@ -67,9 +61,5 @@ export default function middleware(
 }
 
 export const config = {
-  matcher: [
-    '/((?!.+\\.[\\w]+$|_next|monitoring|api/webhooks/clerk).*)',
-    '/',
-    '/(api|trpc)(.*)',
-  ], // Also exclude tunnelRoute used in Sentry from the matcher
+  matcher: ['/((?!.+\\.[\\w]+$|_next|monitoring).*)', '/', '/(api|trpc)(.*)'], // Also exclude tunnelRoute used in Sentry from the matcher
 };

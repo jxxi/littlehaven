@@ -1,5 +1,6 @@
-import { OrganizationList } from '@clerk/nextjs';
 import { getTranslations } from 'next-intl/server';
+
+import { CircleList } from '@/features/circle/CircleList';
 
 export async function generateMetadata(props: { params: { locale: string } }) {
   const t = await getTranslations({
@@ -13,17 +14,12 @@ export async function generateMetadata(props: { params: { locale: string } }) {
   };
 }
 
-const OrganizationSelectionPage = () => (
+const CircleSelectionPage = () => (
   <div className="flex min-h-screen items-center justify-center">
-    <OrganizationList
-      afterSelectOrganizationUrl="/dashboard"
-      afterCreateOrganizationUrl="/dashboard"
-      hidePersonal
-      skipInvitationScreen
-    />
+    <CircleList />
   </div>
 );
 
 export const dynamic = 'force-dynamic';
 
-export default OrganizationSelectionPage;
+export default CircleSelectionPage;
