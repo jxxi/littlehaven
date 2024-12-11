@@ -1,3 +1,10 @@
+# 1.0.0 (2024-12-11)
+
+
+### Features
+
+* add messagebox and clerk routes ([82b25a9](https://github.com/smtheard/babybumpers/commit/82b25a9890532ce9e105d183d91401a3e90bac58))
+
 ## [1.6.1](https://github.com/ixartz/SaaS-Boilerplate/compare/v1.6.0...v1.6.1) (2024-08-31)
 
 
