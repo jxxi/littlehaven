@@ -34,24 +34,11 @@ export default function middleware(
           req.nextUrl.pathname.match(/(\/.*)\/dashboard/)?.at(1) ?? '';
 
         const signInUrl = new URL(`${locale}/sign-in`, req.url);
-
         authObj.protect({
           // `unauthenticatedUrl` is needed to avoid error: "Unable to find `next-intl` locale because the middleware didn't run on this request"
           unauthenticatedUrl: signInUrl.toString(),
         });
       }
-      // if (
-      //   authObj.userId &&
-      //   req.nextUrl.pathname.includes('/dashboard') &&
-      //   !req.nextUrl.pathname.endsWith('/circle-selection')
-      // ) {
-      //   const circleSelection = new URL(
-      //     '/onboarding/circle-selection',
-      //     req.url,
-      //   );
-
-      //   return NextResponse.redirect(circleSelection);
-      // }
 
       return intlMiddleware(req);
     })(request, event);

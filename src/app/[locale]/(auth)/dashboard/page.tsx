@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 
 import { buttonVariants } from '@/components/ui/button';
+import { MessageBox } from '@/features/dashboard/MessageBox';
 import { MessageState } from '@/features/dashboard/MessageState';
 import { TitleBar } from '@/features/dashboard/TitleBar';
 
@@ -44,6 +45,8 @@ const DashboardIndexPage = () => {
           </a>
         }
       />
+
+      <MessageBox />
     </>
   );
 };

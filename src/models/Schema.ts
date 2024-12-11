@@ -24,16 +24,6 @@ export const circlesSchema = pgTable('circles', {
 export type InsertCircle = typeof circlesSchema.$inferInsert;
 export type SelectCircle = typeof circlesSchema.$inferSelect;
 
-export const usersSchema = pgTable('users', {
-  userId: varchar('user_id', { length: 100 }).primaryKey(),
-  username: varchar('username', { length: 32 }).notNull(),
-  bio: varchar('bio', { length: 100 }),
-  joinedAt: timestamp('joined_at', { mode: 'date' }).defaultNow().notNull(),
-});
-
-export type InsertUser = typeof usersSchema.$inferInsert;
-export type SelectUser = typeof usersSchema.$inferSelect;
-
 export const rolesSchema = pgTable('roles', {
   roleId: bigint('role_id', { mode: 'number' }).primaryKey(),
   circleId: uuid('circle_id').references(() => circlesSchema.circleId, {
