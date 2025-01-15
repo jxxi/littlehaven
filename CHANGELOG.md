@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/smtheard/babybumpers/compare/v1.0.0...v1.1.0) (2025-01-15)
+
+
+### Features
+
+* add message emojis ([240a11b](https://github.com/smtheard/babybumpers/commit/240a11b5457a504b02f3674fa8974eca514bc527))
+
 # 1.0.0 (2024-12-11)
 
 
