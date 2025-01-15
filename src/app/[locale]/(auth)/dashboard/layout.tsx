@@ -19,34 +19,30 @@ export default function DashboardLayout(props: { children: React.ReactNode }) {
   const t = useTranslations('DashboardLayout');
 
   return (
-    <>
-      <div className="shadow-md">
-        <div className="mx-auto flex max-w-screen-xl items-center justify-between px-3 py-4">
-          <DashboardHeader
-            menu={[
-              {
-                href: '/dashboard',
-                label: t('home'),
-              },
-              {
-                href: '/dashboard/circle-profile/circle-members',
-                label: t('members'),
-              },
-              {
-                href: '/dashboard/circle-profile',
-                label: t('settings'),
-              },
-            ]}
-          />
-        </div>
+    <div className="h-screen shadow-md">
+      <div className="mx-auto flex max-w-screen-xl items-center justify-between px-3 py-4">
+        <DashboardHeader
+          menu={[
+            {
+              href: '/dashboard',
+              label: t('home'),
+            },
+            {
+              href: '/dashboard/circle-profile/circle-members',
+              label: t('members'),
+            },
+            {
+              href: '/dashboard/circle-profile',
+              label: t('settings'),
+            },
+          ]}
+        />
       </div>
 
-      <div className="min-h-[calc(100vh-72px)] bg-muted">
-        <div className="mx-auto max-w-screen-xl px-3 pb-16 pt-6">
-          {props.children}
-        </div>
+      <div className="h-[calc(100vh-64px)] flex-1 bg-muted p-4">
+        <div className="h-full">{props.children}</div>
       </div>
-    </>
+    </div>
   );
 }
 
