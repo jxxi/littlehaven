@@ -1,12 +1,10 @@
 import { clerkClient } from '@clerk/nextjs/server';
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function updateUserMetadata(request: NextRequest) {
-  const { userId, circles } = await request.json();
-
+export async function updateUserMetadata(id: string, circles: string[]) {
   const client = await clerkClient();
 
-  await client.users.updateUserMetadata(userId, {
+  await client.users.updateUserMetadata(id, {
     publicMetadata: {
       circles,
     },
@@ -16,25 +14,22 @@ export async function updateUserMetadata(request: NextRequest) {
   return NextResponse.json({ success: true });
 }
 
-export async function getUserMetadata(request: NextRequest) {
-  const { userId } = await request.json();
-
+export async function getUserMetadata(id: string) {
   const client = await clerkClient();
 
-  const user = await client.users.getUser(userId);
+  const user = await client.users.getUser(id);
 
   return NextResponse.json(user.publicMetadata);
 }
 
 type UserMetadata = {
-  circles: '';
+  circles: [];
 };
-export async function getUserCircles(request: NextRequest) {
-  const { userId } = await request.json();
-
+export async function getUserCircles(id: string) {
   const client = await clerkClient();
 
-  const user = await client.users.getUser(userId);
+  const user = await client.users.getUser(id);
+  const circles = user.publicMetadata as UserMetadata;
 
-  return NextResponse.json(user.publicMetadata as UserMetadata);
+  return circles;
 }

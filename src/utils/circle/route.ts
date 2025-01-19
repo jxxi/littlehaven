@@ -1,7 +1,11 @@
 import { eq } from 'drizzle-orm';
 
 import { db } from '@/libs/DB';
-import { circlesSchema, type InsertCircle } from '@/models/Schema';
+import {
+  circleMembersSchema,
+  circlesSchema,
+  type InsertCircle,
+} from '@/models/Schema';
 
 export async function getCircle(circleId: string) {
   return db.query.circlesSchema.findFirst({
@@ -9,9 +13,21 @@ export async function getCircle(circleId: string) {
   });
 }
 
-export async function getCirclesByUserId(userId: number) {
+export async function getPublicCircles() {
+  return db.query.circlesSchema.findMany({
+    where: eq(circlesSchema.public, true),
+  });
+}
+
+export async function getCircleOwnerByUserId(userId: string) {
   return db.query.circlesSchema.findMany({
     where: eq(circlesSchema.ownerId, userId),
+  });
+}
+
+export async function getCirclesByUserId(userId: string) {
+  return db.query.circleMembersSchema.findMany({
+    where: eq(circleMembersSchema.userId, userId),
   });
 }
 

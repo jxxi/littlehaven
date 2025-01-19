@@ -14,11 +14,12 @@ export const circlesSchema = pgTable('circles', {
   circleId: uuid('circle_id').defaultRandom().primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
   iconUrl: text('icon_url'),
-  ownerId: bigint('owner_id', { mode: 'number' }).notNull(),
+  ownerId: varchar('owner_id', { length: 40 }).notNull(),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   region: varchar('region', { length: 50 }),
   maxMembers: integer('max_members').default(500000),
   description: text('description'),
+  public: boolean('public').default(false),
 });
 
 export type InsertCircle = typeof circlesSchema.$inferInsert;
@@ -122,7 +123,7 @@ export const reactionsSchema = pgTable(
     messageId: uuid('message_id').references(() => messagesSchema.messageId, {
       onDelete: 'cascade',
     }),
-    userId: bigint('user_id', { mode: 'number' }),
+    userId: varchar('user_id', { length: 100 }).notNull(),
     emoji: varchar('emoji', { length: 32 }),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   },
@@ -140,8 +141,9 @@ export const circleMembersSchema = pgTable(
     circleId: uuid('circle_id').references(() => circlesSchema.circleId, {
       onDelete: 'cascade',
     }),
-    userId: bigint('user_id', { mode: 'number' }),
-    nickname: varchar('nickname', { length: 32 }),
+    userId: varchar('user_id', { length: 40 }),
+    nickname: varchar('nickname', { length: 12 }),
+    bio: varchar('bio', { length: 32 }),
     joinedAt: timestamp('joined_at', { mode: 'date' }).defaultNow().notNull(),
     isDeafened: boolean('is_deafened').default(false),
     isMuted: boolean('is_muted').default(false),
@@ -158,7 +160,7 @@ export const memberRolesSchema = pgTable(
   'member_roles',
   {
     circleId: uuid('circle_id'),
-    userId: bigint('user_id', { mode: 'number' }),
+    userId: varchar('user_id', { length: 100 }).notNull(),
     roleId: bigint('role_id', { mode: 'number' }).references(
       () => rolesSchema.roleId,
       { onDelete: 'cascade' },
@@ -180,7 +182,7 @@ export const invitesSchema = pgTable('invites', {
   channelId: uuid('channel_id')
     .notNull()
     .references(() => channelSchema.channelId, { onDelete: 'cascade' }),
-  inviterId: bigint('inviter_id', { mode: 'number' }).notNull(),
+  inviterId: varchar('inviter_id', { length: 100 }).notNull(),
   maxUses: integer('max_uses'),
   maxAge: integer('max_age'),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),

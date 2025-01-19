@@ -1,21 +1,25 @@
+import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
-const CircleList = () => {
+const UserCircleList = () => {
+  const { user } = useUser();
   const [circles, setCircles] = useState<any[]>([]); // Adjust type as necessary
 
   useEffect(() => {
     const fetchCircles = async () => {
-      const response = await fetch('/api/circles/publicCircles'); // Fetch from the new API route
-      const data = await response.json();
-      setCircles(data);
+      if (user) {
+        const response = await fetch(`/api/circles?userId=${user.id}`);
+        const data = await response.json();
+        setCircles(data);
+      }
     };
 
     fetchCircles();
-  }, []);
+  }, [user]); // Add user as a dependency
 
   return (
-    <div className="rounded-md bg-card p-5">
+    <div className="rounded-md bg-card p-3">
       <div className="max-w-3xl space-y-2">
         {circles.map((circle) => (
           <div
@@ -24,14 +28,14 @@ const CircleList = () => {
           >
             <Image
               src={circle.icon}
-              alt={circle.name}
+              alt=""
               width={32}
               height={32}
               className="mr-2"
             />
             <div>
-              <div className="font-bold">{circle.name}</div>
-              <div className="text-sm text-gray-500">{circle.description}</div>
+              <div className="font-bold">{circle.name}</div>{' '}
+              <div className="text-sm text-gray-500">{circle.description}</div>{' '}
             </div>
           </div>
         ))}
@@ -40,4 +44,4 @@ const CircleList = () => {
   );
 };
 
-export { CircleList };
+export { UserCircleList };
