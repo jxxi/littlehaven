@@ -15,7 +15,7 @@ export async function getCircle(circleId: string) {
 
 export async function getPublicCircles() {
   return db.query.circlesSchema.findMany({
-    where: eq(circlesSchema.public, true),
+    where: eq(circlesSchema.isPublic, true),
   });
 }
 

@@ -19,7 +19,7 @@ export const circlesSchema = pgTable('circles', {
   region: varchar('region', { length: 50 }),
   maxMembers: integer('max_members').default(500000),
   description: text('description'),
-  public: boolean('public').default(false),
+  isPublic: boolean('is_public').default(false),
 });
 
 export type InsertCircle = typeof circlesSchema.$inferInsert;

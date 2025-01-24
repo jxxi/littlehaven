@@ -1,11 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 import {
-  createCircleMember,
-  deleteCircleMember,
-  getAllMembersForCircle,
-  getMemberByCircleIdAndUserId,
-  updateCircleMember,
+  createMemberRole,
+  deleteMemberRole,
+  getRolesForUserInCircle,
+  updateMemberRole,
 } from '@/utils/circle/member/operations'; // Adjust the import based on your project structure
 
 export default async function handler(
@@ -18,13 +17,8 @@ export default async function handler(
     case 'POST':
       // Create a new member role
       try {
-        const { circleId, userId, roleId, bio } = req.body;
-        const newMemberRole = await createCircleMember(
-          circleId,
-          userId,
-          roleId,
-          bio,
-        );
+        const { circleId, userId, roleId } = req.body;
+        const newMemberRole = await createMemberRole(circleId, userId, roleId);
         res.status(201).json(newMemberRole);
       } catch (error: any) {
         res.status(500).json({ message: error.message });
@@ -35,7 +29,7 @@ export default async function handler(
       // Update an existing member role
       try {
         const { circleId, userId, updates } = req.body;
-        const updatedMemberRole = await updateCircleMember(
+        const updatedMemberRole = await updateMemberRole(
           circleId,
           userId,
           updates,
@@ -50,7 +44,7 @@ export default async function handler(
       // Delete a member role
       try {
         const { circleId, userId } = req.body;
-        const deletedMemberRole = await deleteCircleMember(circleId, userId);
+        const deletedMemberRole = await deleteMemberRole(circleId, userId);
         res.status(200).json(deletedMemberRole);
       } catch (error: any) {
         res.status(500).json({ message: error.message });
@@ -61,14 +55,7 @@ export default async function handler(
       // Get roles for a user in a circle
       try {
         const { circleId, userId } = req.body;
-        let roles;
-
-        if (circleId && userId) {
-          roles = await getMemberByCircleIdAndUserId(circleId, userId);
-        } else {
-          roles = await getAllMembersForCircle(circleId);
-        }
-
+        const roles = await getRolesForUserInCircle(circleId, userId);
         res.status(200).json(roles);
       } catch (error: any) {
         res.status(500).json({ message: error.message });

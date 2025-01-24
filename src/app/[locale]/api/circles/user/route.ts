@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { getUserCircles, updateUserMetadata } from '@/utils/clerk/route';
+import { getUserCircles, updateUserMetadata } from '@/utils/clerk/operations';
 
 export async function GET(req: NextRequest) {
   try {
