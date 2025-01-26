@@ -3,9 +3,9 @@ import React from 'react';
 
 import { buttonVariants } from '@/components/ui/button';
 
-const MessageState = (props: {
-  messages: Array<{ id: number; text: string; user: string }>;
-}) => (
+import type { Message } from './Message';
+
+const Messages = (props: { messages: Message[] }) => (
   <>
     {(!props.messages || props.messages.length === 0) && (
       <div
@@ -45,10 +45,13 @@ const MessageState = (props: {
     <div className="space-y-2">
       {' '}
       {props.messages.map((message) => (
-        <div key={message.id} className="rounded-lg bg-gray-800 p-3 shadow-md">
-          <div className="font-semibold text-blue-400">{message.user}</div>{' '}
+        <div
+          key={message.messageId}
+          className="rounded-lg bg-gray-800 p-3 shadow-md"
+        >
+          <div className="font-semibold text-blue-400">{message.userId}</div>{' '}
           {/* User name color */}
-          <div className="text-gray-300">{message.text}</div>{' '}
+          <div className="text-gray-300">{message.content}</div>{' '}
           {/* Message text color */}
         </div>
       ))}
@@ -56,4 +59,4 @@ const MessageState = (props: {
   </>
 );
 
-export { MessageState };
+export { Messages };

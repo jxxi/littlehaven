@@ -87,16 +87,17 @@ export type SelectChannelPermission =
   typeof channelPermissionsSchema.$inferSelect;
 
 export const messagesSchema = pgTable('messages', {
-  messageId: uuid('message_id').defaultRandom().primaryKey(),
-  channelId: uuid('channel_id')
-    .notNull()
-    .references(() => channelSchema.channelId, { onDelete: 'cascade' }),
-  authorId: bigint('author_id', { mode: 'number' }).notNull(),
-  content: text('content'),
-  isPinned: boolean('is_pinned').default(false),
+  messageId: text('message_id').primaryKey(),
+  channelId: text('channel_id').notNull(),
+  userId: varchar('user_id', { length: 100 }).notNull(),
+  content: text('content').notNull(),
   isTts: boolean('is_tts').default(false),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-  editedAt: timestamp('edited_at', { mode: 'date' }),
+  mediaUrl: text('media_url'),
+  mediaType: text('media_type'),
+  thumbnailUrl: text('thumbnail_url'),
+  createdAt: timestamp('created_at').defaultNow(),
+  editedAt: timestamp('edited_at'),
+  isPinned: boolean('is_pinned').default(false),
 });
 
 export type InsertMessages = typeof messagesSchema.$inferInsert;

@@ -1,3 +1,5 @@
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { eq } from 'drizzle-orm';
 
 import { db } from '@/libs/DB';
@@ -7,27 +9,31 @@ import {
   reactionsSchema,
 } from '@/models/Schema';
 
-// Create a new message
 export async function createMessage(
   channelId: string,
-  authorId: bigint,
+  userId: string,
   content: string,
+  mediaUrl?: string,
+  mediaType?: string,
+  thumbnailUrl?: string,
   isTts?: boolean,
 ) {
   try {
     const newMessage = await db.insert(messagesSchema).values({
       channelId,
-      authorId,
+      userId,
       content,
       isTts: isTts || false,
+      mediaUrl,
+      mediaType,
+      thumbnailUrl,
     });
-    return newMessage; // Return the newly created message
+    return newMessage;
   } catch (error) {
     throw new Error('Failed to create message');
   }
 }
 
-// Update an existing message
 export async function updateMessage(
   messageId: string,
   updates: Partial<{ content: string; isPinned: boolean; editedAt: Date }>,
@@ -44,7 +50,6 @@ export async function updateMessage(
   }
 }
 
-// Delete a message
 export async function deleteMessage(messageId: string) {
   try {
     const deletedMessage = await db
@@ -57,7 +62,6 @@ export async function deleteMessage(messageId: string) {
   }
 }
 
-// Get all messages for a specific channel
 export async function getAllMessagesForChannel(channelId: string) {
   try {
     const messages = await db.query.messagesSchema.findMany({
@@ -69,7 +73,6 @@ export async function getAllMessagesForChannel(channelId: string) {
   }
 }
 
-// Get a specific message by message ID
 export async function getMessageById(messageId: string) {
   try {
     const message = await db.query.messagesSchema.findFirst({
@@ -81,7 +84,6 @@ export async function getMessageById(messageId: string) {
   }
 }
 
-// Create an attachment for a message
 export async function createAttachment(
   messageId: string,
   filename: string,
@@ -105,20 +107,18 @@ export async function createAttachment(
   }
 }
 
-// Delete an attachment
 export async function deleteAttachment(attachmentId: string) {
   try {
     const deletedAttachment = await db
       .delete(attachmentsSchema)
       .where(eq(attachmentsSchema.attachmentId, attachmentId))
       .returning();
-    return deletedAttachment; // Return the deleted attachment
+    return deletedAttachment;
   } catch (error) {
     throw new Error('Failed to delete attachment');
   }
 }
 
-// Create a reaction for a message
 export async function createReaction(
   messageId: string,
   userId: string,
@@ -136,7 +136,6 @@ export async function createReaction(
   }
 }
 
-// Delete a reaction
 export async function deleteReaction(
   messageId: string,
   userId: string,
@@ -155,14 +154,66 @@ export async function deleteReaction(
   }
 }
 
-// Get all reactions for a specific message
 export async function getAllReactionsForMessage(messageId: string) {
   try {
     const reactions = await db.query.reactionsSchema.findMany({
       where: eq(reactionsSchema.messageId, messageId),
     });
-    return reactions; // Return the list of reactions
+    return reactions;
   } catch (error) {
     throw new Error('Failed to fetch reactions for message');
+  }
+}
+
+export async function generateThumbnail(
+  videoUrl: string,
+): Promise<string | undefined> {
+  try {
+    // Create FFmpeg instance
+    const ffmpeg = new FFmpeg();
+
+    // Load FFmpeg
+    await ffmpeg.load({
+      coreURL: await toBlobURL('/ffmpeg-core.js', 'text/javascript'),
+      wasmURL: await toBlobURL('/ffmpeg-core.wasm', 'application/wasm'),
+    });
+
+    // Fetch video file
+    const videoData = await fetchFile(videoUrl);
+    await ffmpeg.writeFile('input.mp4', videoData);
+
+    // Extract frame at 1 second mark
+    await ffmpeg.exec([
+      '-i',
+      'input.mp4',
+      '-ss',
+      '00:00:01.000',
+      '-frames:v',
+      '1',
+      '-c:v',
+      'png',
+      'thumbnail.png',
+    ]);
+
+    // Read the thumbnail
+    const thumbnailData = await ffmpeg.readFile('thumbnail.png');
+    const thumbnailBlob = new Blob([thumbnailData], { type: 'image/png' });
+
+    // Upload thumbnail to blob storage
+    const formData = new FormData();
+    formData.append('file', thumbnailBlob, 'thumbnail.png');
+    formData.append('type', 'thumbnail');
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) throw new Error('Thumbnail upload failed');
+    const { url } = await response.json();
+
+    return url;
+  } catch (error) {
+    return undefined;
   }
 }

@@ -6,7 +6,7 @@ import {
   getAllMembersForCircle,
   getMemberByCircleIdAndUserId,
   updateCircleMember,
-} from '@/utils/circle/member/operations'; // Adjust the import based on your project structure
+} from '@/utils/circle/member/operations';
 
 export default async function handler(
   req: NextApiRequest,
@@ -16,7 +16,6 @@ export default async function handler(
 
   switch (method) {
     case 'POST':
-      // Create a new member role
       try {
         const { circleId, userId, roleId, bio } = req.body;
         const newMemberRole = await createCircleMember(
@@ -32,7 +31,6 @@ export default async function handler(
       break;
 
     case 'PUT':
-      // Update an existing member role
       try {
         const { circleId, userId, updates } = req.body;
         const updatedMemberRole = await updateCircleMember(
@@ -47,7 +45,6 @@ export default async function handler(
       break;
 
     case 'DELETE':
-      // Delete a member role
       try {
         const { circleId, userId } = req.body;
         const deletedMemberRole = await deleteCircleMember(circleId, userId);
@@ -58,7 +55,6 @@ export default async function handler(
       break;
 
     case 'GET':
-      // Get roles for a user in a circle
       try {
         const { circleId, userId } = req.body;
         let roles;

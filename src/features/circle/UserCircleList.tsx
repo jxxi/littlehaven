@@ -1,23 +1,6 @@
-import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
 
-const UserCircleList = () => {
-  const { user } = useUser();
-  const [circles, setCircles] = useState<any[]>([]); // Adjust type as necessary
-
-  useEffect(() => {
-    const fetchCircles = async () => {
-      if (user) {
-        const response = await fetch(`/api/circles?userId=${user.id}`);
-        const data = await response.json();
-        setCircles(data);
-      }
-    };
-
-    fetchCircles();
-  }, [user]); // Add user as a dependency
-
+const UserCircleList = (circles) => {
   return (
     <div className="rounded-md bg-card p-3">
       <div className="max-w-3xl space-y-2">
