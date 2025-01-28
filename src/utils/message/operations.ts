@@ -10,6 +10,7 @@ import {
 } from '@/models/Schema';
 
 export async function createMessage(
+  circleId: string,
   channelId: string,
   userId: string,
   content: string,
@@ -20,6 +21,7 @@ export async function createMessage(
 ) {
   try {
     const newMessage = await db.insert(messagesSchema).values({
+      circleId,
       channelId,
       userId,
       content,
@@ -62,10 +64,10 @@ export async function deleteMessage(messageId: string) {
   }
 }
 
-export async function getAllMessagesForChannel(channelId: string) {
+export async function getAllMessagesForChannel(circleId: string) {
   try {
     const messages = await db.query.messagesSchema.findMany({
-      where: eq(messagesSchema.channelId, channelId),
+      where: eq(messagesSchema.circleId, circleId),
     });
     return messages; // Return the list of messages
   } catch (error) {

@@ -29,6 +29,34 @@
       "when": 1737144757810,
       "tag": "0003_brave_namora",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1738033930612,
+      "tag": "0004_jittery_doctor_doom",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1738039154129,
+      "tag": "0005_milky_dark_phoenix",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1738039226900,
+      "tag": "0006_known_natasha_romanoff",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1738039265247,
+      "tag": "0007_broken_baron_strucker",
+      "breakpoints": true
     }
   ]
 }

@@ -87,8 +87,13 @@ export type SelectChannelPermission =
   typeof channelPermissionsSchema.$inferSelect;
 
 export const messagesSchema = pgTable('messages', {
-  messageId: text('message_id').primaryKey(),
-  channelId: text('channel_id').notNull(),
+  messageId: uuid('message_id').defaultRandom().primaryKey(),
+  circleId: uuid('circle_id')
+    .notNull()
+    .references(() => circlesSchema.circleId, { onDelete: 'cascade' }),
+  channelId: uuid('channel_id')
+    .notNull()
+    .references(() => channelSchema.channelId, { onDelete: 'cascade' }),
   userId: varchar('user_id', { length: 100 }).notNull(),
   content: text('content').notNull(),
   isTts: boolean('is_tts').default(false),

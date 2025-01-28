@@ -3,22 +3,24 @@
 import { Image, Plus } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
-import { getAllMessagesForChannel } from '@/utils/message/operations';
-
+import type { CreateMessage, Message } from '../../types/message';
 import EmojiPicker from './EmojiPicker';
-import type { Message } from './Message';
 import { Messages } from './Messages';
 import { Video } from './Video';
 
-const MessageBox = ({ userId, currentCircleId }) => {
+const MessageBox = ({ userId, currentCircleId, currentChannelId }) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const channelMessages = await getAllMessagesForChannel(currentCircleId);
-        setMessages(channelMessages);
+        const response = await fetch(
+          `/api/circles/messages?circleId=${currentCircleId}`,
+        );
+        if (!response.ok) throw new Error('Failed to fetch messages');
+        const circleMessages = await response.json();
+        setMessages(circleMessages);
       } catch (error) {
         /* empty */
       }
@@ -27,27 +29,43 @@ const MessageBox = ({ userId, currentCircleId }) => {
     fetchMessages();
   }, [currentCircleId]);
 
+  // useEffect(() => {
+  //   const eventSource = new EventSource(
+  //     `/api/messages/sse?circleId=${currentCircleId}`,
+  //   );
+
+  //   eventSource.onmessage = (event) => {
+  //     const newMessage = JSON.parse(event.data);
+  //     setMessages((prev) => [...prev, newMessage]);
+  //   };
+
+  //   return () => {
+  //     eventSource.close();
+  //   };
+  // }, [currentCircleId]);
+
   const handleSendMessage = async () => {
-    if (message.trim()) {
-      try {
-        const response = await fetch('/api/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            circleId: currentCircleId,
-            userId,
-            content: message,
-          }),
-        });
+    if (!message.trim()) return;
 
-        if (!response.ok) throw new Error('Failed to send message');
+    const newMessage: CreateMessage = {
+      circleId: currentCircleId,
+      channelId: currentChannelId,
+      userId,
+      content: message,
+      isTts: false,
+    };
 
-        const newMessage = await response.json();
-        setMessages((prev) => [...prev, newMessage]);
-        setMessage('');
-      } catch (error) {
-        // TODO: Show error notification
-      }
+    try {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newMessage),
+      });
+
+      if (!response.ok) throw new Error('Failed to send message');
+      setMessage('');
+    } catch (error) {
+      // TODO: Show error notification
     }
   };
 
@@ -76,20 +94,24 @@ const MessageBox = ({ userId, currentCircleId }) => {
 
         const { url, poster } = await response.json();
 
-        // Add new message with media
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          {
-            messageId: (prevMessages.length + 1).toString(),
-            content: '',
-            userId,
-            circleId: currentCircleId,
-            mediaUrl: url,
-            mediaType: type,
-            thumbnailUrl: poster,
-            createdAt: new Date().toISOString(),
-          },
-        ]);
+        const newMessage: CreateMessage = {
+          circleId: currentCircleId,
+          channelId: currentChannelId,
+          userId,
+          content: message,
+          mediaUrl: url,
+          mediaType: type,
+          thumbnailUrl: poster,
+          isTts: false,
+        };
+
+        const messageResponse = await fetch('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newMessage),
+        });
+
+        if (!messageResponse.ok) throw new Error('Message Upload failed');
       } catch (error) {
         // TODO: Show error notification to user
       }

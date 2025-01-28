@@ -1,8 +1,33 @@
 import { put } from '@vercel/blob';
 import { nanoid } from 'nanoid';
-import { NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
-import { generateThumbnail } from '@/utils/message/operations';
+import {
+  generateThumbnail,
+  getAllMessagesForChannel,
+} from '@/utils/message/operations';
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const circleId = searchParams.get('circleId');
+
+  if (!circleId) {
+    return NextResponse.json(
+      { error: 'Circle ID is required' },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const messages = await getAllMessagesForChannel(circleId);
+    return NextResponse.json(messages);
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to fetch messages' },
+      { status: 500 },
+    );
+  }
+}
 
 export async function POST(req: Request) {
   try {

@@ -1,9 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import React from 'react';
 
-import { buttonVariants } from '@/components/ui/button';
-
-import type { Message } from './Message';
+import type { Message } from '../../types/message';
 
 const Messages = (props: { messages: Message[] }) => (
   <>
@@ -20,35 +18,22 @@ const Messages = (props: { messages: Message[] }) => (
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <path d="M0 0h24v24H0z" stroke="none" />
-            <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3M12 12l8-4.5M12 12v9M12 12L4 7.5" />
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            <path d="M8 10h.01" />
+            <path d="M12 10h.01" />
+            <path d="M16 10h.01" />
           </svg>
         </div>
 
         <div className="mt-3 text-center">
-          <div className="text-xl font-semibold">Let's get started</div>
-          <div className="mt-1 text-sm font-medium text-muted-foreground">
-            text
-          </div>
-
-          <div className="mt-5">
-            <a
-              className={buttonVariants({ size: 'lg' })}
-              href="https://nextjs-boilerplate.com/pro-saas-starter-kit"
-            >
-              button
-            </a>
-          </div>
+          <div className="text-xl font-semibold">Let's get started!</div>
         </div>
       </div>
     )}{' '}
     <div className="space-y-2">
       {' '}
       {props.messages.map((message) => (
-        <div
-          key={message.messageId}
-          className="rounded-lg bg-gray-800 p-3 shadow-md"
-        >
+        <div key={message.id} className="rounded-lg bg-gray-800 p-3 shadow-md">
           <div className="font-semibold text-blue-400">{message.userId}</div>{' '}
           {/* User name color */}
           <div className="text-gray-300">{message.content}</div>{' '}

@@ -1,18 +1,38 @@
 import { put } from '@vercel/blob';
 import { nanoid } from 'nanoid';
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+import { broadcastMessage } from '@/utils/message/broadcast';
 import { createMessage, generateThumbnail } from '@/utils/message/operations';
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const formData = await req.formData();
-    const file = formData.get('file') as File;
-    const type = formData.get('type') as string;
-    const channelId = formData.get('channelId') as string;
-    const userId = formData.get('userId') as string;
+    const contentType = request.headers.get('content-type');
+    const isMediaUpload = contentType?.includes('multipart/form-data');
 
-    if (!file || !channelId || !userId) {
+    const body = await request.json();
+    if (isMediaUpload) {
+      const formData = await request.formData();
+      const file = formData.get('file') as File;
+      const type = formData.get('type') as string;
+
+      if (!file || !type) {
+        return NextResponse.json(
+          { error: 'Missing file or type' },
+          { status: 400 },
+        );
+      }
+      // Handle media upload...
+    }
+
+    const file = body.get('file') as File;
+    const type = body.get('type') as string;
+    const circleId = body.get('circleId') as string;
+    const channelId = body.get('channelId') as string;
+    const userId = body.get('userId') as string;
+
+    if (!file || !circleId || !userId || !channelId) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 },
@@ -37,16 +57,21 @@ export async function POST(req: Request) {
 
     // Save to database
     const message = await createMessage(
+      circleId,
       channelId,
       userId,
-      '',
-      blob.url,
-      type,
+      pathname,
       poster,
     );
 
+    // Broadcast the new message
+    await broadcastMessage(message);
+
     return NextResponse.json(message);
   } catch (error) {
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to create message' },
+      { status: 500 },
+    );
   }
 }
