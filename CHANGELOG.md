@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/smtheard/babybumpers/compare/v1.1.0...v1.2.0) (2025-01-26)
+
+
+### Features
+
+* add media upload and message handling features ([1478a28](https://github.com/smtheard/babybumpers/commit/1478a2888ac64dd3a324417895c7d087143876bc))
+
 # [1.1.0](https://github.com/smtheard/babybumpers/compare/v1.0.0...v1.1.0) (2025-01-15)
 
 
