@@ -1,5 +1,19 @@
-import { broadcast } from '@/app/[locale]/api/messages/sse/route';
+export const connections = new Map<string, ReadableStreamDefaultController>();
 
-export async function broadcastMessage(message: any) {
-  broadcast(message);
+export function addConnection(
+  id: string,
+  controller: ReadableStreamDefaultController,
+) {
+  connections.set(id, controller);
+}
+
+export function removeConnection(id: string) {
+  connections.delete(id);
+}
+
+export function broadcast(message: any) {
+  const encoder = new TextEncoder();
+  connections.forEach((controller) => {
+    controller.enqueue(encoder.encode(`data: ${JSON.stringify(message)}\n\n`));
+  });
 }

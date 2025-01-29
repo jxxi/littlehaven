@@ -8,6 +8,7 @@ import { channelPermissionsSchema, channelSchema } from '@/models/Schema';
 export async function createChannel(
   circleId: string,
   name: string,
+  description: string,
   type: string,
   position?: number,
   topic?: string,
@@ -17,6 +18,7 @@ export async function createChannel(
     const newChannel = await db.insert(channelSchema).values({
       circleId,
       name,
+      description,
       type,
       position,
       topic,

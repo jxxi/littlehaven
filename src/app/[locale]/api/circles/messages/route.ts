@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
   if (!circleId) {
     return NextResponse.json(
-      { error: 'Circle ID is required' },
+      { error: 'Circle Id is required' },
       { status: 400 },
     );
   }

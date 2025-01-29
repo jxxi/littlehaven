@@ -44,11 +44,14 @@ export type SelectRole = typeof rolesSchema.$inferSelect;
 
 export const channelSchema = pgTable('channels', {
   channelId: uuid('channel_id').defaultRandom().primaryKey(),
-  circleId: uuid('circle_id').references(() => circlesSchema.circleId, {
-    onDelete: 'cascade',
-  }),
+  circleId: uuid('circle_id')
+    .notNull()
+    .references(() => circlesSchema.circleId, {
+      onDelete: 'cascade',
+    }),
   name: varchar('name', { length: 100 }).notNull(),
-  type: varchar('type', { length: 20 }).notNull(),
+  desription: varchar('description', { length: 20 }),
+  type: varchar('type', { length: 20 }),
   position: integer('position'),
   topic: text('topic'),
   isNsfw: boolean('is_nsfw').default(false),
