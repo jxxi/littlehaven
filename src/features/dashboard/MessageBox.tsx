@@ -3,14 +3,18 @@
 import { Image, Plus } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
+import { GifIcon } from '@/components/icons/GifIcon';
+
 import type { CreateMessage, Message } from '../../types/message';
 import EmojiPicker from './EmojiPicker';
+import { GifPicker } from './GifPicker';
 import { Messages } from './Messages';
 import { Video } from './Video';
 
 const MessageBox = ({ userId, currentCircleId, currentChannelId }) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
+  const [showGifPicker, setShowGifPicker] = useState(false);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -120,6 +124,32 @@ const MessageBox = ({ userId, currentCircleId, currentChannelId }) => {
     input.click();
   };
 
+  const handleGifSelect = async (gif: { url: string; preview: string }) => {
+    try {
+      const newMessage: CreateMessage = {
+        circleId: currentCircleId,
+        channelId: currentChannelId,
+        userId,
+        content: '',
+        mediaUrl: gif.url,
+        mediaType: 'gif',
+        thumbnailUrl: gif.preview,
+        isTts: false,
+      };
+
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newMessage),
+      });
+
+      if (!response.ok) throw new Error('Failed to send GIF');
+      setShowGifPicker(false);
+    } catch (error) {
+      /* empty */
+    }
+  };
+
   return (
     <div className="flex-col">
       <Messages messages={messages} />
@@ -164,9 +194,23 @@ const MessageBox = ({ userId, currentCircleId, currentChannelId }) => {
               <Video src="" />
             </button>
             <EmojiPicker message={message} setMessage={setMessage} />
+            <button
+              type="button"
+              aria-label="Send GIF"
+              className="hover:text-gray-200"
+              onClick={() => setShowGifPicker(!showGifPicker)}
+            >
+              <GifIcon size={20} />
+            </button>
           </div>
         </div>
       </div>
+      {showGifPicker && (
+        <GifPicker
+          onSelect={handleGifSelect}
+          onClose={() => setShowGifPicker(false)}
+        />
+      )}
     </div>
   );
 };

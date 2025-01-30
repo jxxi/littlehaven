@@ -6,20 +6,7 @@ import { useEffect, useState } from 'react';
 import { UserCircleList } from '@/features/circle/UserCircleList';
 import { MessageBox } from '@/features/dashboard/MessageBox';
 
-interface Channel {
-  channelId: string;
-  name: string;
-  description?: string;
-  type: 'text' | 'voice';
-}
-
-interface Circle {
-  circleId: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  channels: Channel[];
-}
+import type { Circle } from './Circle';
 
 const DashboardIndexPage = () => {
   const { user } = useUser();
@@ -32,7 +19,7 @@ const DashboardIndexPage = () => {
       if (!user) return;
 
       try {
-        const response = await fetch(`/api/circles?userId=${user.id}`);
+        const response = await fetch(`/api/circles/user?userId=${user.id}`);
         if (!response.ok) throw new Error('Failed to fetch circles');
 
         const data = await response.json();
@@ -40,7 +27,7 @@ const DashboardIndexPage = () => {
 
         // Fetch channels for each circle
         const circlesWithChannels = await Promise.all(
-          data.map(async (circle) => {
+          data.circles.map(async (circle) => {
             const channelResponse = await fetch(
               `/api/channels?circleId=${circle.circleId}`,
             );

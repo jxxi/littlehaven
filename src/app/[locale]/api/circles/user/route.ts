@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const { searchParams } = url;
-    const userId = searchParams.get('id') as string;
+    const userId = searchParams.get('userId') as string;
 
     const circles = await getUserCircles(userId);
     return NextResponse.json(circles, { status: 200 });
