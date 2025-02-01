@@ -23,11 +23,12 @@ const DashboardIndexPage = () => {
         if (!response.ok) throw new Error('Failed to fetch circles');
 
         const data = await response.json();
-        setCircles(data);
+        const initialCircles = data?.circles;
+        setCircles(initialCircles);
 
         // Fetch channels for each circle
         const circlesWithChannels = await Promise.all(
-          data.circles.map(async (circle) => {
+          initialCircles.map(async (circle) => {
             const channelResponse = await fetch(
               `/api/channels?circleId=${circle.circleId}`,
             );
@@ -54,7 +55,7 @@ const DashboardIndexPage = () => {
     };
 
     fetchCircles();
-  }, [user]);
+  });
 
   return (
     <div className="flex h-full flex-row">

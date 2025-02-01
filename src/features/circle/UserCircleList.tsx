@@ -13,7 +13,7 @@ interface UserCircleListProps {
 
 const UserCircleList = ({ circles }: UserCircleListProps) => {
   if (!circles || !Array.isArray(circles)) {
-    return null; // or some loading/error state
+    return null;
   }
 
   return (
@@ -25,7 +25,10 @@ const UserCircleList = ({ circles }: UserCircleListProps) => {
             className="flex cursor-pointer items-center rounded-md border p-3 hover:bg-accent"
           >
             <Image
-              src={circle.icon || '/default-circle-icon.png'}
+              src={
+                circle.icon ||
+                '/src/components/ui/images/default-circle-icon.png'
+              }
               alt=""
               width={32}
               height={32}
