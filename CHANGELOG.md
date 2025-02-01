@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/smtheard/babybumpers/compare/v1.2.0...v1.3.0) (2025-01-30)
+
+
+### Features
+
+* add GIF support to message sending ([c89ed22](https://github.com/smtheard/babybumpers/commit/c89ed22642a2c108e88490b2d04566c9091afbf1))
+
 # [1.2.0](https://github.com/smtheard/babybumpers/compare/v1.1.0...v1.2.0) (2025-01-26)
 
 
