@@ -55,7 +55,7 @@ const GifPicker = ({ onSelect, onClose }: GifPickerProps) => {
       </div>
 
       <div className="grid h-96 grid-cols-2 gap-2 overflow-y-auto">
-        {gifs.map((gif) => (
+        {gifs?.map((gif) => (
           <button
             type="button"
             key={gif.id}

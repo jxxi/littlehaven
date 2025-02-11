@@ -5,28 +5,37 @@ import { type NextRequest, NextResponse } from 'next/server';
 import {
   generateThumbnail,
   getAllMessagesForChannel,
+  getAllMessagesForCircle,
 } from '@/utils/message/operations';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const circleId = searchParams.get('circleId');
+  const channelId = searchParams.get('channelId');
 
-  if (!circleId) {
+  if (!circleId && !channelId) {
     return NextResponse.json(
-      { error: 'Circle Id is required' },
+      { error: 'Circle or Channel Id are required' },
       { status: 400 },
     );
   }
 
   try {
-    const messages = await getAllMessagesForChannel(circleId);
-    return NextResponse.json(messages);
+    if (channelId) {
+      const messages = await getAllMessagesForChannel(channelId);
+      return NextResponse.json(messages);
+    }
+    if (circleId) {
+      const messages = await getAllMessagesForCircle(circleId);
+      return NextResponse.json(messages);
+    }
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to fetch messages' },
       { status: 500 },
     );
   }
+  return NextResponse.json({ error: 'No messages found' }, { status: 404 });
 }
 
 export async function POST(req: Request) {

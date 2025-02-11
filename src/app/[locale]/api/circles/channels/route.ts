@@ -1,105 +1,130 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 import {
   createChannel,
   deleteChannel,
   getAllChannelsForCircle,
   getChannelById,
-  updateChannel,
 } from '@/utils/channel/operations';
 
-export async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { method } = req;
+export async function POST(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const circleId = searchParams.get('circleId');
+  const name = searchParams.get('name');
+  const description = searchParams.get('description');
+  const type = searchParams.get('type');
 
-  switch (method) {
-    case 'POST': {
-      // Create a new circle
-      const { circleId, name, description, type } = req.body;
-      try {
-        const newChannel = await createChannel(
-          circleId,
-          name,
-          description,
-          type,
-        );
-        res.status(201).json(newChannel);
-      } catch (error) {
-        res.status(500).json({
+  try {
+    if (!circleId || !name || !description || !type) {
+      return NextResponse.json(
+        { error: 'circleId, name, description, type are required' },
+        { status: 400 },
+      );
+    }
+
+    const newChannel = await createChannel(circleId, name, description, type);
+    return NextResponse.json(newChannel, { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error ? error.message : 'Failed to create channel',
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const circleId = searchParams.get('circleId');
+  const channelId = searchParams.get('channelId');
+  const name = searchParams.get('name');
+  const description = searchParams.get('description');
+  const type = searchParams.get('type');
+
+  try {
+    if (!channelId || !circleId || !name || !description || !type) {
+      return NextResponse.json(
+        { error: 'channelId, updates are required' },
+        { status: 400 },
+      );
+    }
+
+    const newChannel = await createChannel(circleId, name, description, type);
+    return NextResponse.json(newChannel, { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error ? error.message : 'Failed to create channel',
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const channelId = searchParams.get('channelId');
+  try {
+    if (!channelId) {
+      return NextResponse.json(
+        { error: 'channelId is required' },
+        { status: 400 },
+      );
+    }
+    const deletedChannel = await deleteChannel(channelId);
+    return NextResponse.json(deletedChannel, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error ? error.message : 'Failed to delete channel',
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const channelId = searchParams.get('channelId');
+  const circleId = searchParams.get('circleId');
+
+  if (channelId) {
+    try {
+      const channel = await getChannelById(channelId);
+      return NextResponse.json(channel, { status: 200 });
+    } catch (error) {
+      return NextResponse.json(
+        {
           message:
-            error instanceof Error ? error.message : 'Failed to create channel',
-        });
-      }
-      break;
+            error instanceof Error ? error.message : 'Failed to fetch channel',
+        },
+        { status: 500 },
+      );
     }
-
-    case 'PUT': {
-      // Update an existing circle
-      const { channelId, updates } = req.body;
-      try {
-        const updatedChannel = await updateChannel(channelId, updates);
-        res.status(200).json(updatedChannel);
-      } catch (error) {
-        res.status(500).json({
+  } else if (circleId) {
+    try {
+      const channels = await getAllChannelsForCircle(circleId);
+      return NextResponse.json(channels, { status: 200 });
+    } catch (error) {
+      return NextResponse.json(
+        {
           message:
-            error instanceof Error ? error.message : 'Failed to update channel',
-        });
-      }
-      break;
+            error instanceof Error
+              ? error.message
+              : 'Failed to fetch channels for circle',
+        },
+        { status: 500 },
+      );
     }
-
-    case 'DELETE': {
-      // Delete a circle
-      const { channelId } = req.body;
-      try {
-        const deletedChannel = await deleteChannel(channelId);
-        res.status(200).json(deletedChannel);
-      } catch (error) {
-        res.status(500).json({
-          message:
-            error instanceof Error ? error.message : 'Failed to delete channel',
-        });
-      }
-      break;
-    }
-
-    case 'GET': {
-      // Handle different GET requests
-      const { channelId, circleId } = req.query;
-
-      if (channelId) {
-        // Get a specific channel
-        try {
-          const channel = await getChannelById(channelId as string);
-          res.status(200).json(channel);
-        } catch (error) {
-          res.status(500).json({
-            message:
-              error instanceof Error
-                ? error.message
-                : 'Failed to fetch channel',
-          });
-        }
-      } else if (circleId) {
-        // Get channels by circle id
-        try {
-          const channels = await getAllChannelsForCircle(circleId as string);
-          res.status(200).json(channels);
-        } catch (error) {
-          res.status(500).json({
-            message:
-              error instanceof Error
-                ? error.message
-                : 'Failed to fetch channels for circle',
-          });
-        }
-      } else {
-        res.status(400).json({ message: 'Invalid query parameters' });
-      }
-      break;
-    }
-
-    default:
-      res.setHeader('Allow', ['POST', 'PUT', 'DELETE', 'GET']);
-      res.status(405).end(`Method ${method} Not Allowed`);
+  } else {
+    return NextResponse.json(
+      { message: 'Invalid query parameters' },
+      { status: 400 },
+    );
   }
 }

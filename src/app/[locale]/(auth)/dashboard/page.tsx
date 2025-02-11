@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { UserCircleList } from '@/features/circle/UserCircleList';
 import { MessageBox } from '@/features/dashboard/MessageBox';
 
-import type { Circle } from './Circle';
+import type { Circle } from '../../../../types/Circle';
 
 const DashboardIndexPage = () => {
   const { user } = useUser();
@@ -24,43 +24,60 @@ const DashboardIndexPage = () => {
 
         const data = await response.json();
         const initialCircles = data?.circles;
-        setCircles(initialCircles);
 
-        // Fetch channels for each circle
-        const circlesWithChannels = await Promise.all(
-          initialCircles.map(async (circle) => {
-            const channelResponse = await fetch(
-              `/api/channels?circleId=${circle.circleId}`,
-            );
-            if (!channelResponse.ok)
-              throw new Error(
-                `Failed to fetch channels for circle ${circle.circleId}`,
+        // Only fetch channels if initialCircles is not empty
+        if (initialCircles && initialCircles.length > 0) {
+          const circlesWithChannels = await Promise.all(
+            initialCircles.map(async (circleId) => {
+              const channelResponse = await fetch(
+                `/api/circles/channels?circleId=${circleId}`,
+                {
+                  method: 'GET',
+                },
               );
-            const channels = await channelResponse.json();
-            return { ...circle, channels };
-          }),
-        );
+              if (!channelResponse.ok)
+                throw new Error(
+                  `Failed to fetch channels for circle ${circleId}`,
+                );
+              const channels = await channelResponse.json();
+              return { circleId, channels }; // Ensure you return the circleId
+            }),
+          );
 
-        setCircles(circlesWithChannels);
-        if (circlesWithChannels.length > 0) {
+          setCircles(circlesWithChannels);
+
+          // Set activeCircleId only after circlesWithChannels is populated
           const firstCircle = circlesWithChannels[0];
-          setActiveCircleId(firstCircle.circleId);
-          if (firstCircle.channels?.length > 0) {
-            setActiveChannelId(firstCircle.channels[0].channelId);
+          if (firstCircle) {
+            setActiveCircleId(firstCircle.circleId); // Ensure this is set correctly
+            if (firstCircle.channels?.length > 0) {
+              setActiveChannelId(firstCircle.channels[0].channelId);
+            }
           }
         }
       } catch (error) {
+        console.error(error); // Log the error for debugging
         setCircles([]);
       }
     };
 
     fetchCircles();
-  });
+  }, [user]); // Only run when user changes
 
   return (
     <div className="flex h-full flex-row">
       <div className="h-full grow-0 bg-white">
-        <UserCircleList circles={circles} />
+        {circles.length > 0 ? (
+          <UserCircleList
+            circles={circles}
+            currentCircleId={activeCircleId}
+            currentChannelId={activeChannelId}
+            handleCircleClick={(circleId) => setActiveCircleId(circleId)}
+            handleChannelClick={(channelId) => setActiveChannelId(channelId)}
+          />
+        ) : (
+          <div className="p-4 text-center">No circles available</div>
+        )}
       </div>
       <div className="grow content-end items-end bg-gray-800 p-4">
         <MessageBox

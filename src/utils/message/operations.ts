@@ -64,10 +64,21 @@ export async function deleteMessage(messageId: string) {
   }
 }
 
-export async function getAllMessagesForChannel(circleId: string) {
+export async function getAllMessagesForCircle(circleId: string) {
   try {
     const messages = await db.query.messagesSchema.findMany({
       where: eq(messagesSchema.circleId, circleId),
+    });
+    return messages; // Return the list of messages
+  } catch (error) {
+    throw new Error('Failed to fetch messages for circle');
+  }
+}
+
+export async function getAllMessagesForChannel(channelId: string) {
+  try {
+    const messages = await db.query.messagesSchema.findMany({
+      where: eq(messagesSchema.channelId, channelId),
     });
     return messages; // Return the list of messages
   } catch (error) {
