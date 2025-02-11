@@ -1,4 +1,5 @@
 /* eslint-disable react/no-unescaped-entities */
+import { UserButton } from '@clerk/nextjs';
 import React from 'react';
 
 import type { Message } from '../../types/message';
@@ -33,11 +34,23 @@ const Messages = (props: { messages: Message[] }) => (
     <div className="space-y-2">
       {' '}
       {props.messages.map((message) => (
-        <div key={message.id} className="rounded-lg bg-gray-800 p-3 shadow-md">
-          <div className="font-semibold text-blue-400">{message.userId}</div>{' '}
-          {/* User name color */}
-          <div className="text-gray-300">{message.content}</div>{' '}
-          {/* Message text color */}
+        <div
+          key={message.id}
+          className="flex items-start rounded-lg bg-gray-800 p-3 shadow-md"
+        >
+          <UserButton
+            appearance={{
+              elements: {
+                userButtonBox: {
+                  flexDirection: 'row-reverse',
+                },
+              },
+            }}
+            showName
+          />
+          <div className="ml-2">
+            <div className="text-gray-300">{message.content}</div>
+          </div>
         </div>
       ))}
     </div>
