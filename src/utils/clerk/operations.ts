@@ -22,6 +22,22 @@ export async function getUserMetadata(id: string) {
   return NextResponse.json(user.publicMetadata);
 }
 
+export async function banUser(id: string) {
+  const client = await clerkClient();
+
+  const response = await client.users.banUser(id);
+
+  return NextResponse.json(response);
+}
+
+export async function unbanUser(id: string) {
+  const client = await clerkClient();
+
+  const response = await client.users.unbanUser(id);
+
+  return NextResponse.json(response);
+}
+
 type UserMetadata = {
   circles: [];
 };

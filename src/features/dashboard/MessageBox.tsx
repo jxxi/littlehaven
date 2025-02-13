@@ -34,21 +34,6 @@ const MessageBox = ({ userId, currentCircleId, currentChannelId }) => {
     fetchMessages();
   }, [currentCircleId, currentChannelId, userId]);
 
-  // useEffect(() => {
-  //   const eventSource = new EventSource(
-  //     `/api/messages/sse?circleId=${currentCircleId}`,
-  //   );
-
-  //   eventSource.onmessage = (event) => {
-  //     const newMessage = JSON.parse(event.data);
-  //     setMessages((prev) => [...prev, newMessage]);
-  //   };
-
-  //   return () => {
-  //     eventSource.close();
-  //   };
-  // }, [currentCircleId]);
-
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
@@ -152,24 +137,23 @@ const MessageBox = ({ userId, currentCircleId, currentChannelId }) => {
   };
 
   return (
-    <div className="flex-col">
+    <div className="flex-col rounded-md border border-black bg-white p-4 shadow-md">
       <Messages messages={messages} />
-      <div className="flex items-center space-x-2 bg-gray-700 p-4">
+      <div className="flex items-center space-x-2 rounded-md bg-gray-200 p-4">
         <button
           type="button"
           aria-label="Add"
-          className="text-gray-400 hover:text-gray-200"
+          className="text-gray-600 hover:text-gray-800"
         >
           <Plus size={24} />
         </button>
-
         <div className="relative grow">
           <input
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Message"
-            className="w-full rounded-md bg-gray-800 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-md bg-gray-100 px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
                 handleSendMessage();
@@ -177,7 +161,7 @@ const MessageBox = ({ userId, currentCircleId, currentChannelId }) => {
             }}
           />
 
-          <div className="absolute right-2 top-1/2 flex -translate-y-1/2 space-x-2 text-gray-400">
+          <div className="absolute right-2 top-1/2 flex -translate-y-1/2 space-x-1 text-gray-400">
             <button
               type="button"
               aria-label="Upload Image"

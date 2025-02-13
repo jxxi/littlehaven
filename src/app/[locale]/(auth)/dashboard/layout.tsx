@@ -39,7 +39,7 @@ export default function DashboardLayout(props: { children: React.ReactNode }) {
         />
       </div>
 
-      <div className="h-[calc(100vh-64px)] flex-1 bg-muted p-4">
+      <div className="h-[calc(100vh-64px)] flex-1 border border-black bg-muted p-4">
         <div className="h-full">{props.children}</div>
       </div>
     </div>

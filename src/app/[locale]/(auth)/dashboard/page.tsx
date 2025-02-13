@@ -19,16 +19,16 @@ const DashboardIndexPage = () => {
       if (!user) return;
 
       try {
-        const response = await fetch(`/api/circles/user?userId=${user.id}`);
+        const response = await fetch(`/api/circles?userId=${user.id}`);
         if (!response.ok) throw new Error('Failed to fetch circles');
 
-        const data = await response.json();
-        const initialCircles = data?.circles;
+        const initialCircles = await response.json();
 
         // Only fetch channels if initialCircles is not empty
         if (initialCircles && initialCircles.length > 0) {
           const circlesWithChannels = await Promise.all(
-            initialCircles.map(async (circleId) => {
+            initialCircles.map(async (circle) => {
+              const { circleId } = circle;
               const channelResponse = await fetch(
                 `/api/circles/channels?circleId=${circleId}`,
                 {
@@ -40,12 +40,11 @@ const DashboardIndexPage = () => {
                   `Failed to fetch channels for circle ${circleId}`,
                 );
               const channels = await channelResponse.json();
-              return { circleId, channels }; // Ensure you return the circleId
+              return { circle, channels }; // Ensure you return the circleId
             }),
           );
 
           setCircles(circlesWithChannels);
-
           // Set activeCircleId only after circlesWithChannels is populated
           const firstCircle = circlesWithChannels[0];
           if (firstCircle) {
@@ -56,7 +55,6 @@ const DashboardIndexPage = () => {
           }
         }
       } catch (error) {
-        console.error(error); // Log the error for debugging
         setCircles([]);
       }
     };
@@ -66,7 +64,7 @@ const DashboardIndexPage = () => {
 
   return (
     <div className="flex h-full flex-row">
-      <div className="h-full grow-0 bg-white">
+      <div className="grow-0 border border-black bg-white">
         {circles.length > 0 ? (
           <UserCircleList
             circles={circles}
@@ -79,7 +77,7 @@ const DashboardIndexPage = () => {
           <div className="p-4 text-center">No circles available</div>
         )}
       </div>
-      <div className="grow content-end items-end bg-gray-800 p-4">
+      <div className="grow content-end items-end bg-pink-50 p-4">
         <MessageBox
           userId={user?.id ?? ''}
           currentCircleId={activeCircleId}

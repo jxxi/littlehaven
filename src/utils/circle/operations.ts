@@ -25,9 +25,22 @@ export async function getCircleOwnerByUserId(userId: string) {
   });
 }
 
-export async function getCirclesByUserId(userId: string) {
+export async function getCirclesMemberUserId(userId: string) {
   return db.query.circleMembersSchema.findMany({
     where: eq(circleMembersSchema.userId, userId),
+  });
+}
+
+export async function getCirclesWithMemberByUserId(userId: string) {
+  return db.query.circleMembersSchema.findMany({
+    where: eq(circleMembersSchema.userId, userId),
+    include: {
+      circles: {
+        select: {
+          name: true,
+        },
+      },
+    },
   });
 }
 

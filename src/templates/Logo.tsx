@@ -5,7 +5,7 @@ import { AppConfig } from '@/utils/AppConfig';
 const Logo = () => (
   <div className="flex items-center text-xl font-semibold">
     <Image
-      src="/assets/images/default-circle-icon.png"
+      src="/assets/images/default-circle-icon-removebg.png"
       alt=""
       width={32}
       height={32}

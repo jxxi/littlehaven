@@ -49,14 +49,11 @@ const EmojiPicker = ({ message, setMessage }) => {
         aria-label="emoji"
         ref={buttonRef}
         onClick={toggleEmojiPicker}
-        className={`
-          rounded-full p-2 transition-colors duration-200
-          ${
-            isOpen
-              ? 'bg-gray-200 text-blue-600'
-              : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
-          }
-        `}
+        className={`rounded-full p-2 transition-colors duration-200 ${
+          isOpen
+            ? 'bg-gray-200 text-blue-600'
+            : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+        }`}
       >
         <Smile className="size-5" />
       </button>

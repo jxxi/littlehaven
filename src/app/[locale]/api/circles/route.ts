@@ -1,112 +1,100 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { type NextRequest, NextResponse } from 'next/server';
 
 import {
   createCircle,
   deleteCircle,
   getCircle,
-  getCirclesByUserId,
+  getCirclesWithMemberByUserId,
   getPublicCircles,
   updateCircle,
 } from '@/utils/circle/operations';
 
-export async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { method } = req;
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url);
+  const { searchParams } = url;
+  const userId = searchParams.get('userId') as string;
+  const circleId = searchParams.get('circleId') as string;
+  const isPublic = searchParams.get('isPublic') as string;
 
-  switch (method) {
-    case 'POST': {
-      // Create a new circle
-      const circle = req.body;
-      try {
-        const newCircle = await createCircle(circle);
-        res.status(201).json(newCircle);
-      } catch (error) {
-        res.status(500).json({
-          message:
-            error instanceof Error ? error.message : 'Failed to create circle',
-        });
-      }
-      break;
+  if (circleId) {
+    // Get a specific circle
+    try {
+      const circle = await getCircle(circleId as string);
+      return NextResponse.json(circle, { status: 200 });
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Failed to fetch circle' },
+        { status: 500 },
+      );
     }
-
-    case 'PUT': {
-      // Update an existing circle
-      const { circleId, updates } = req.body;
-      try {
-        const updatedCircle = await updateCircle(circleId, updates);
-        res.status(200).json(updatedCircle);
-      } catch (error) {
-        res.status(500).json({
-          message:
-            error instanceof Error ? error.message : 'Failed to update circle',
-        });
-      }
-      break;
+  } else if (userId) {
+    // Get circles by user ID
+    try {
+      const circles = await getCirclesWithMemberByUserId(userId as string);
+      return NextResponse.json(circles, { status: 200 });
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Failed to fetch circles for user' },
+        { status: 500 },
+      );
     }
-
-    case 'DELETE': {
-      // Delete a circle
-      const { circleId } = req.body;
-      try {
-        const deletedCircle = await deleteCircle(circleId);
-        res.status(200).json(deletedCircle);
-      } catch (error) {
-        res.status(500).json({
-          message:
-            error instanceof Error ? error.message : 'Failed to delete circle',
-        });
-      }
-      break;
+  } else if (isPublic) {
+    // Get public circles
+    try {
+      const publicCircles = await getPublicCircles();
+      return NextResponse.json(publicCircles, { status: 200 });
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Failed to fetch public circles for user' },
+        { status: 500 },
+      );
     }
+  } else {
+    return NextResponse.json(
+      { error: 'Invalid query parameters' },
+      { status: 400 },
+    );
+  }
+}
 
-    case 'GET': {
-      // Handle different GET requests
-      const { circleId, userId, isPublic } = req.query;
+export async function POST(req: NextRequest) {
+  // Create a new circle
+  const circle = await req.json();
+  try {
+    const newCircle = await createCircle(circle);
+    return NextResponse.json(newCircle, { status: 201 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to create circle' },
+      { status: 500 },
+    );
+  }
+}
 
-      if (circleId) {
-        // Get a specific circle
-        try {
-          const circle = await getCircle(circleId as string);
-          res.status(200).json(circle);
-        } catch (error) {
-          res.status(500).json({
-            message:
-              error instanceof Error ? error.message : 'Failed to fetch circle',
-          });
-        }
-      } else if (userId) {
-        // Get circles by user ID
-        try {
-          const circles = await getCirclesByUserId(userId as string);
-          res.status(200).json(circles);
-        } catch (error) {
-          res.status(500).json({
-            message:
-              error instanceof Error
-                ? error.message
-                : 'Failed to fetch circles for user',
-          });
-        }
-      } else if (isPublic) {
-        // Get public circles
-        try {
-          const publicCircles = await getPublicCircles();
-          res.status(200).json(publicCircles);
-        } catch (error) {
-          res.status(500).json({
-            message:
-              error instanceof Error
-                ? error.message
-                : 'Failed to fetch public circles',
-          });
-        }
-      } else {
-        res.status(400).json({ message: 'Invalid query parameters' });
-      }
-      break;
-    }
+export async function PUT(req: NextRequest) {
+  // Update an existing circle
+  const { circleId, updates } = await req.json();
+  try {
+    const updatedCircle = await updateCircle(circleId, updates);
+    return NextResponse.json(updatedCircle, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to update circle' },
+      { status: 500 },
+    );
+  }
+}
 
-    default:
-      res.setHeader('Allow', ['POST', 'PUT', 'DELETE', 'GET']);
-      res.status(405).end(`Method ${method} Not Allowed`);
+export async function DELETE(req: NextRequest) {
+  // Delete a circle
+  const { circleId } = await req.json();
+  try {
+    const deletedCircle = await deleteCircle(circleId);
+    return NextResponse.json(deletedCircle, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to delete circle' },
+      { status: 500 },
+    );
   }
 }

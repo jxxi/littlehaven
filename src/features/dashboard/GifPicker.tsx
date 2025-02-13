@@ -68,6 +68,7 @@ const GifPicker = ({ onSelect, onClose }: GifPickerProps) => {
               width={200}
               height={200}
               className="size-full object-cover"
+              unoptimized
             />
           </button>
         ))}
