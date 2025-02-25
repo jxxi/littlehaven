@@ -1,14 +1,12 @@
 import { clerkClient } from '@clerk/nextjs/server';
 import { type NextRequest, NextResponse } from 'next/server';
 
-export async function updateUserMetadata(request: NextRequest) {
-  const { userId, bios } = await request.json();
-
+export async function updateUserInterests(userId: string, interests: string[]) {
   const client = await clerkClient();
 
   await client.users.updateUserMetadata(userId, {
     privateMetadata: {
-      bios,
+      interests,
     },
   });
 

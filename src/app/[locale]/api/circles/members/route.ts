@@ -17,13 +17,13 @@ export default async function handler(
   switch (method) {
     case 'POST':
       try {
-        const { circleId, userId, roleId, bio } = req.body;
-        const newMemberRole = await createCircleMember(
+        const { circleId, userId, bio, nickname } = req.body;
+        const newMemberRole = await createCircleMember({
           circleId,
           userId,
-          roleId,
+          nickname,
           bio,
-        );
+        });
         res.status(201).json(newMemberRole);
       } catch (error: any) {
         res.status(500).json({ message: error.message });

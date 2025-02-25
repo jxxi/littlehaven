@@ -3,7 +3,6 @@ import { nanoid } from 'nanoid';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { broadcast } from '@/utils/message/broadcast';
 import { createMessage, generateThumbnail } from '@/utils/message/operations';
 
 const createMediaMessage = async (
@@ -77,7 +76,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Broadcast the new message
-    broadcast(message);
+    // broadcast(message);
 
     return NextResponse.json(message);
   } catch (error) {

@@ -2,7 +2,7 @@ import type { LocalePrefix } from 'node_modules/next-intl/dist/types/src/routing
 
 import { BILLING_INTERVAL, type PricingPlan } from '@/types/Subscription';
 
-const localePrefix: LocalePrefix = 'as-needed';
+const localePrefix: LocalePrefix = 'as-needed' as LocalePrefix;
 
 // FIXME: Update this configuration file based on your project information
 export const AppConfig = {
@@ -14,6 +14,7 @@ export const AppConfig = {
     },
     { id: 'fr', name: 'Français' },
   ],
+  welcomeCircleId: 'fdbab2b5-c55a-46c6-8375-a9d4bda8f3bc',
   defaultLocale: 'en',
   localePrefix,
 };

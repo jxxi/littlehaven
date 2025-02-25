@@ -1,7 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { getUserCircles, updateUserMetadata } from '@/utils/clerk/operations';
+import { getUserCircles } from '@/utils/clerk/operations';
+import { updateUserInterests } from '@/utils/clerk/private/operations';
 
 export async function GET(req: NextRequest) {
   try {
@@ -21,23 +22,23 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { id, circles } = await req.json();
+    const { userId, interests } = await req.json();
 
-    if (!id || !circles) {
+    if (!userId || !interests) {
       return NextResponse.json(
-        { error: 'id and circles are required' },
+        { error: 'userId and interests are required' },
         { status: 400 },
       );
     }
 
-    await updateUserMetadata(id, circles);
+    await updateUserInterests(userId, interests);
     return NextResponse.json(
-      { message: 'User metadata updated successfully' },
+      { message: 'User interests metadata updated successfully' },
       { status: 200 },
     );
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to update user metadata' },
+      { error: 'Failed to update user interests metadata' },
       { status: 500 },
     );
   }

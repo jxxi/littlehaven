@@ -3,6 +3,7 @@
 import { useUser } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 
+import Loader from '@/components/Loader';
 import { UserCircleList } from '@/features/circle/UserCircleList';
 import { MessageBox } from '@/features/dashboard/MessageBox';
 
@@ -13,6 +14,7 @@ const DashboardIndexPage = () => {
   const [circles, setCircles] = useState<Circle[]>([]);
   const [activeCircleId, setActiveCircleId] = useState<string>();
   const [activeChannelId, setActiveChannelId] = useState<string>();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCircles = async () => {
@@ -55,7 +57,7 @@ const DashboardIndexPage = () => {
           }
         }
       } catch (error) {
-        setCircles([]);
+        console.error('Error fetching circles:', error);
       }
     };
 
@@ -64,6 +66,7 @@ const DashboardIndexPage = () => {
 
   return (
     <div className="flex h-full flex-row">
+      {loading && <Loader />}
       <div className="grow-0 border border-black bg-white">
         {circles.length > 0 ? (
           <UserCircleList
@@ -82,6 +85,7 @@ const DashboardIndexPage = () => {
           userId={user?.id ?? ''}
           currentCircleId={activeCircleId}
           currentChannelId={activeChannelId}
+          setLoading={setLoading}
         />
       </div>
     </div>

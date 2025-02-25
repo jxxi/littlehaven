@@ -2,6 +2,7 @@
 
 import { Image, Plus } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
 
 import { GifIcon } from '@/components/icons/GifIcon';
 
@@ -11,15 +12,32 @@ import { GifPicker } from './GifPicker';
 import { Messages } from './Messages';
 import { Video } from './Video';
 
-const MessageBox = ({ userId, currentCircleId, currentChannelId }) => {
+const socket = io('http://localhost:3000');
+
+const MessageBox = ({
+  userId,
+  currentCircleId,
+  currentChannelId,
+  setLoading,
+}) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [showGifPicker, setShowGifPicker] = useState(false);
 
   useEffect(() => {
+    socket.on('receiveMessage', (newMessage) => {
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    });
+
+    return () => {
+      socket.off('receiveMessage');
+    };
+  }, []);
+
+  useEffect(() => {
     const fetchMessages = async () => {
-      if (!currentCircleId || !currentChannelId) return;
       try {
+        if (!currentCircleId && !currentChannelId) return;
         const response = await fetch(
           `/api/circles/messages?channelId=${currentChannelId}`,
         );
@@ -27,12 +45,14 @@ const MessageBox = ({ userId, currentCircleId, currentChannelId }) => {
         const circleMessages = await response.json();
         setMessages(circleMessages);
       } catch (error) {
-        /* empty */
+        console.error('Error fetching messages:', error);
+      } finally {
+        setLoading(false); // Set loading to false after fetching messages
       }
     };
 
     fetchMessages();
-  }, [currentCircleId, currentChannelId, userId]);
+  }, [currentCircleId, currentChannelId, userId, setLoading]);
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
@@ -45,18 +65,8 @@ const MessageBox = ({ userId, currentCircleId, currentChannelId }) => {
       isTts: false,
     };
 
-    try {
-      const response = await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newMessage),
-      });
-
-      if (!response.ok) throw new Error('Failed to send message');
-      setMessage('');
-    } catch (error) {
-      // TODO: Show error notification
-    }
+    socket.emit('sendMessage', newMessage);
+    setMessage('');
   };
 
   const handleFileUpload = async (type: 'image' | 'video') => {
@@ -137,7 +147,7 @@ const MessageBox = ({ userId, currentCircleId, currentChannelId }) => {
   };
 
   return (
-    <div className="flex-col rounded-md border border-black bg-white p-4 shadow-md">
+    <div className="relative flex-col rounded-md border border-black bg-white p-4 shadow-md">
       <Messages messages={messages} />
       <div className="flex items-center space-x-2 rounded-md bg-gray-200 p-4">
         <button

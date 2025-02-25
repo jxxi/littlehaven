@@ -10,6 +10,8 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
+import { tagNameEnum } from '@/constants/tags';
+
 export const circlesSchema = pgTable('circles', {
   circleId: uuid('circle_id').defaultRandom().primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
@@ -147,10 +149,11 @@ export type SelectReaction = typeof reactionsSchema.$inferSelect;
 export const circleMembersSchema = pgTable(
   'circle_members',
   {
+    memberId: uuid('member_id').defaultRandom().primaryKey(),
     circleId: uuid('circle_id').references(() => circlesSchema.circleId, {
       onDelete: 'cascade',
     }),
-    userId: varchar('user_id', { length: 40 }),
+    userId: varchar('user_id', { length: 40 }).notNull(),
     nickname: varchar('nickname', { length: 12 }),
     bio: varchar('bio', { length: 32 }),
     joinedAt: timestamp('joined_at', { mode: 'date' }).defaultNow().notNull(),
@@ -202,3 +205,20 @@ export const invitesSchema = pgTable('invites', {
 
 export type InsertInvite = typeof invitesSchema.$inferInsert;
 export type SelectInvite = typeof invitesSchema.$inferSelect;
+
+export const circleTagsSchema = pgTable(
+  'circle_tags',
+  {
+    circleId: uuid('circle_id').references(() => circlesSchema.circleId, {
+      onDelete: 'cascade',
+    }),
+    tagName: tagNameEnum('tag_name').notNull(),
+    addedAt: timestamp('added_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  (table) => ({
+    pk: primaryKey(table.circleId, table.tagName),
+  }),
+);
+
+export type InsertCircleTag = typeof circleTagsSchema.$inferInsert;
+export type SelectCircleTag = typeof circleTagsSchema.$inferSelect;

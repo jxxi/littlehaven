@@ -14,6 +14,14 @@ export async function updateUserMetadata(id: string, circles: string[]) {
   return NextResponse.json({ success: true });
 }
 
+export async function getUserList() {
+  const client = await clerkClient();
+
+  const response = await client.users.getUserList();
+
+  return NextResponse.json(response);
+}
+
 export async function getUserMetadata(id: string) {
   const client = await clerkClient();
 

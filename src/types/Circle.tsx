@@ -8,4 +8,5 @@ export interface Circle {
   description?: string;
   icon?: string;
   channels: Channel[];
+  tags?: string[];
 }

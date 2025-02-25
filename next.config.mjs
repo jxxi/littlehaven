@@ -19,7 +19,7 @@ const bundleAnalyzer = withBundleAnalyzer({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['media.tenor.com'],
+    domains: ['media.tenor.com', 'img.clerk.com'],
   },
   eslint: {
     dirs: ['.'],
@@ -28,6 +28,7 @@ const nextConfig = {
   reactStrictMode: true,
   experimental: {
     serverComponentsExternalPackages: ['@electric-sql/pglite'],
+    serverActions: true,
   },
 };
 

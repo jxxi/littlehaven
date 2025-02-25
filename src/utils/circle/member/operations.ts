@@ -6,24 +6,25 @@ import {
   invitesSchema,
   memberRolesSchema,
 } from '@/models/Schema';
+import type { CircleMember } from '@/types/CircleMember';
 
 // Create a new circle member
-export async function createCircleMember(
-  circleId: string,
-  userId: string,
-  nickname: string,
-  bio: string,
-) {
+export async function createCircleMember(member: CircleMember) {
   try {
-    const newMember = await db.insert(circleMembersSchema).values({
-      circleId,
-      userId,
-      nickname,
-      bio,
-    });
+    const newMember = await db.insert(circleMembersSchema).values(member);
     return newMember; // Return the newly created member
   } catch (error) {
     throw new Error('Failed to create circle member');
+  }
+}
+
+// Create new circle members
+export async function createCircleMembers(members: CircleMember[]) {
+  try {
+    const newMembers = await db.insert(circleMembersSchema).values(members);
+    return newMembers;
+  } catch (error) {
+    throw new Error('Failed to create circle members');
   }
 }
 
