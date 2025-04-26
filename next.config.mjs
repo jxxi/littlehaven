@@ -28,7 +28,6 @@ const nextConfig = {
   reactStrictMode: true,
   experimental: {
     serverComponentsExternalPackages: ['@electric-sql/pglite'],
-    serverActions: true,
   },
 };
 
