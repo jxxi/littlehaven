@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse } from 'next/server';
 
 import {
   createCircleMember,
@@ -8,71 +8,76 @@ import {
   updateCircleMember,
 } from '@/utils/circle/member/operations';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
-  const { method } = req;
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { circleId, userId, bio, nickname } = body;
 
-  switch (method) {
-    case 'POST':
-      try {
-        const { circleId, userId, bio, nickname } = req.body;
-        const newMemberRole = await createCircleMember({
-          circleId,
-          userId,
-          nickname,
-          bio,
-        });
-        res.status(201).json(newMemberRole);
-      } catch (error: any) {
-        res.status(500).json({ message: error.message });
-      }
-      break;
+    const newMemberRole = await createCircleMember({
+      circleId,
+      userId,
+      nickname,
+      bio,
+    });
 
-    case 'PUT':
-      try {
-        const { circleId, userId, updates } = req.body;
-        const updatedMemberRole = await updateCircleMember(
-          circleId,
-          userId,
-          updates,
-        );
-        res.status(200).json(updatedMemberRole);
-      } catch (error: any) {
-        res.status(500).json({ message: error.message });
-      }
-      break;
+    return NextResponse.json(newMemberRole, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
+}
 
-    case 'DELETE':
-      try {
-        const { circleId, userId } = req.body;
-        const deletedMemberRole = await deleteCircleMember(circleId, userId);
-        res.status(200).json(deletedMemberRole);
-      } catch (error: any) {
-        res.status(500).json({ message: error.message });
-      }
-      break;
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { circleId, userId, updates } = body;
 
-    case 'GET':
-      try {
-        const { circleId, userId } = req.body;
-        let roles;
+    const updatedMemberRole = await updateCircleMember(
+      circleId,
+      userId,
+      updates,
+    );
 
-        if (circleId && userId) {
-          roles = await getMemberByCircleIdAndUserId(circleId, userId);
-        } else {
-          roles = await getAllMembersForCircle(circleId);
-        }
+    return NextResponse.json(updatedMemberRole);
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
+}
 
-        res.status(200).json(roles);
-      } catch (error: any) {
-        res.status(500).json({ message: error.message });
-      }
-      break;
+export async function DELETE(request: Request) {
+  try {
+    const body = await request.json();
+    const { circleId, userId } = body;
 
-    default:
-      res.setHeader('Allow', ['POST', 'PUT', 'DELETE', 'GET']);
-      res.status(405).end(`Method ${method} Not Allowed`);
+    const deletedMemberRole = await deleteCircleMember(circleId, userId);
+
+    return NextResponse.json(deletedMemberRole);
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    // In App Router, query params would come from the URL rather than body
+    const { searchParams } = new URL(request.url);
+    const circleId = searchParams.get('circleId');
+    const userId = searchParams.get('userId');
+
+    let roles;
+
+    if (circleId && userId) {
+      roles = await getMemberByCircleIdAndUserId(circleId, userId);
+    } else if (circleId) {
+      roles = await getAllMembersForCircle(circleId);
+    } else {
+      return NextResponse.json(
+        { message: 'Missing required parameters' },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json(roles);
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
