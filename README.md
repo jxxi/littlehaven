@@ -1,6 +1,6 @@
 # Circles: Next JS 14+, Tailwind CSS 3.4 and TypeScript
 
-![alt text](https://github.com/jxxi/circles/tree/main/public/assets/images/circles.png "Circles")
+![alt text](https://github.com/jxxi/circles/tree/main/public/assets/images/circles-landing.png "Circles")
 
 ### Requirements
 
