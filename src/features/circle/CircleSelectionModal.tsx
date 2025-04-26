@@ -17,7 +17,6 @@ const CircleSelectionModal: React.FC<CircleSelectionModalProps> = ({
   const { user } = useUser();
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const [displayName, setDisplayName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [circles, setCircles] = useState<Circle[]>([]);
   const [selectedCircles, setSelectedCircles] = useState<Circle[]>([]);
@@ -62,19 +61,11 @@ const CircleSelectionModal: React.FC<CircleSelectionModalProps> = ({
   }, []);
 
   const handleNextPage = () => {
-    if (page === 1 && displayName.trim()) {
-      setPage(2);
-    } else if (page === 2) {
-      setPage(3);
-    }
+    setPage(2);
   };
 
   const handlePrevPage = () => {
-    if (page === 2) {
-      setPage(1);
-    } else if (page === 3) {
-      setPage(2);
-    }
+    setPage(1);
   };
 
   const handleTagSelection = (tag: string) => {
@@ -96,7 +87,7 @@ const CircleSelectionModal: React.FC<CircleSelectionModalProps> = ({
       const members: CircleMember[] = selectedCircles.map((circle) => ({
         circleId: circle.circleId,
         userId: user?.id || '',
-        nickname: displayName,
+        nickname: user?.username || 'Anonymous',
       }));
 
       const response = await fetch('/api/circles/members', {
@@ -158,42 +149,6 @@ const CircleSelectionModal: React.FC<CircleSelectionModalProps> = ({
         return (
           <>
             <h2 className="mb-4 text-xl font-semibold">Welcome to Circles!</h2>
-            <div className="mb-4">
-              <div className="mb-1 text-sm font-medium text-gray-700">
-                Display Name
-              </div>
-              <input
-                type="text"
-                aria-label="Display Name"
-                placeholder="Enter your display name"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full rounded border p-2"
-                required
-              />
-            </div>
-            <button
-              type="button"
-              onClick={handleNextPage}
-              className="w-full rounded bg-blue-500 p-2 text-white hover:bg-blue-600"
-              disabled={!displayName.trim()}
-            >
-              Next
-            </button>
-            <div className="mt-4 text-center">
-              <button
-                type="button"
-                onClick={skip}
-                className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
-              >
-                Skip for now
-              </button>
-            </div>
-          </>
-        );
-      case 2:
-        return (
-          <>
             <h2 className="mb-4 text-xl font-semibold">
               What are you interested in?
             </h2>
@@ -247,7 +202,7 @@ const CircleSelectionModal: React.FC<CircleSelectionModalProps> = ({
             </div>
           </>
         );
-      case 3:
+      case 2:
       default:
         return (
           <>

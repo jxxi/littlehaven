@@ -36,7 +36,7 @@ export default function IndexPage(props: { params: { locale: string } }) {
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-r from-pink-100 to-blue-100 p-4">
       <div className="text-center">
         <h1 className="mb-6 border-b-4 border-black pb-2 text-4xl font-bold text-gray-800">
-          Baby Bumpers
+          Circles
         </h1>
         <p className="mb-8 text-xl text-gray-700">
           Your lifelong community for the journey of parenthood
@@ -59,7 +59,7 @@ export default function IndexPage(props: { params: { locale: string } }) {
           href="/sign-up"
           className="inline-flex items-center rounded-full bg-black px-6 py-2 text-lg font-semibold text-white transition duration-300 hover:bg-gray-800"
         >
-          Join Your Bump Buddies
+          Join Your Circle
           <ArrowRightIcon className="ml-2 size-5" />
         </Link>
       </div>

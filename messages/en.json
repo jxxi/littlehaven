@@ -1,0 +1,11 @@
+{
+  "Index": {
+    "title": "Circles",
+    "description": "Connect with other parents"
+  },
+  "Navigation": {
+    "home": "Home",
+    "circles": "Circles",
+    "profile": "Profile"
+  }
+}
