@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse } from 'next/server';
 
 import {
   createMemberRole,
@@ -7,63 +7,55 @@ import {
   updateMemberRole,
 } from '@/utils/circle/member/operations'; // Adjust the import based on your project structure
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
-  const { method } = req;
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { circleId, userId, roleId } = body;
+    const newMemberRole = await createMemberRole(circleId, userId, roleId);
+    return NextResponse.json(newMemberRole, { status: 201 });
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
+}
 
-  switch (method) {
-    case 'POST':
-      // Create a new member role
-      try {
-        const { circleId, userId, roleId } = req.body;
-        const newMemberRole = await createMemberRole(circleId, userId, roleId);
-        res.status(201).json(newMemberRole);
-      } catch (error: any) {
-        res.status(500).json({ message: error.message });
-      }
-      break;
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { circleId, userId, updates } = body;
+    const updatedMemberRole = await updateMemberRole(circleId, userId, updates);
+    return NextResponse.json(updatedMemberRole);
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
+}
 
-    case 'PUT':
-      // Update an existing member role
-      try {
-        const { circleId, userId, updates } = req.body;
-        const updatedMemberRole = await updateMemberRole(
-          circleId,
-          userId,
-          updates,
-        );
-        res.status(200).json(updatedMemberRole);
-      } catch (error: any) {
-        res.status(500).json({ message: error.message });
-      }
-      break;
+export async function DELETE(request: Request) {
+  try {
+    const body = await request.json();
+    const { circleId, userId } = body;
+    const deletedMemberRole = await deleteMemberRole(circleId, userId);
+    return NextResponse.json(deletedMemberRole);
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
+}
 
-    case 'DELETE':
-      // Delete a member role
-      try {
-        const { circleId, userId } = req.body;
-        const deletedMemberRole = await deleteMemberRole(circleId, userId);
-        res.status(200).json(deletedMemberRole);
-      } catch (error: any) {
-        res.status(500).json({ message: error.message });
-      }
-      break;
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const circleId = searchParams.get('circleId');
+    const userId = searchParams.get('userId');
 
-    case 'GET':
-      // Get roles for a user in a circle
-      try {
-        const { circleId, userId } = req.body;
-        const roles = await getRolesForUserInCircle(circleId, userId);
-        res.status(200).json(roles);
-      } catch (error: any) {
-        res.status(500).json({ message: error.message });
-      }
-      break;
+    if (!circleId || !userId) {
+      return NextResponse.json(
+        { message: 'Missing required parameters' },
+        { status: 400 },
+      );
+    }
 
-    default:
-      res.setHeader('Allow', ['POST', 'PUT', 'DELETE', 'GET']);
-      res.status(405).end(`Method ${method} Not Allowed`);
+    const roles = await getRolesForUserInCircle(circleId, userId);
+    return NextResponse.json(roles);
+  } catch (error: any) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
