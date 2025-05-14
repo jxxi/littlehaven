@@ -23,7 +23,9 @@
     "storybook:serve": "http-server storybook-static --port 6006 --silent",
     "serve-storybook": "run-s storybook:*",
     "test-storybook:ci": "start-server-and-test serve-storybook http://127.0.0.1:6006 test-storybook",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:push": "cross-env NODE_ENV=development drizzle-kit push:pg",
+    "db:push:prod": "cross-env NODE_ENV=production drizzle-kit push:pg"
   },
   "dependencies": {
     "@clerk/localizations": "^2.5.1",
@@ -59,6 +61,8 @@
     "pg": "^8.12.0",
     "pino": "^9.3.2",
     "pino-pretty": "^11.2.2",
+    "pusher": "^5.2.0",
+    "pusher-js": "^8.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.52.1",

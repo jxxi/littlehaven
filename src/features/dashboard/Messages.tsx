@@ -1,4 +1,3 @@
-import { useUser } from '@clerk/nextjs';
 import React from 'react';
 
 import ChatUser from '@/components/ChatUser';
@@ -25,8 +24,6 @@ const formatDate = (dateInput: string | Date) => {
 };
 
 const Messages = (props: { messages: Message[] }) => {
-  const { user } = useUser();
-
   return (
     <>
       {(!props.messages || props.messages.length === 0) && (
@@ -55,15 +52,18 @@ const Messages = (props: { messages: Message[] }) => {
         </div>
       )}
       <div className="space-y-2">
-        {props.messages.map((message) => (
+        {props.messages.map((message, idx) => (
           <div
-            key={message.id}
+            key={message.id ?? idx}
             className="flex items-start rounded-lg bg-white p-3 shadow-md"
           >
             <div className="flex flex-col">
-              {user && (
+              {message.user && (
                 <div className="flex items-center space-x-2">
-                  <ChatUser username={user.username} imageUrl={user.imageUrl} />
+                  <ChatUser
+                    username={message.user.username}
+                    imageUrl={message.user.imageUrl}
+                  />
                   <span className="text-sm text-gray-500">
                     {formatDate(message.createdAt)}
                   </span>

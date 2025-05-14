@@ -42,7 +42,7 @@ const EmojiPicker = ({ message, setMessage }) => {
   };
 
   return (
-    <div className="relative w-full max-w-md p-4">
+    <div className="relative w-full max-w-md p-1">
       {/* Emoji button */}
       <button
         type="button"

@@ -48,11 +48,11 @@ const CircleSelectionModal: React.FC<CircleSelectionModalProps> = ({
   useEffect(() => {
     const fetchCircles = async () => {
       try {
-        const response = await fetch('/api/circles');
+        const response = await fetch('/api/circles?isPublic=true');
         const data = await response.json();
         setCircles(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error('Error fetching circles:', error);
+        //
         setCircles([]);
       }
     };
@@ -123,7 +123,7 @@ const CircleSelectionModal: React.FC<CircleSelectionModalProps> = ({
         router.push('/dashboard');
       }
     } catch (error) {
-      console.error('Error creating circle members:', error);
+      //
     }
   };
 
@@ -206,14 +206,19 @@ const CircleSelectionModal: React.FC<CircleSelectionModalProps> = ({
       default:
         return (
           <>
-            <h2 className="mb-4 text-xl font-semibold">Select Circles</h2>
+            <h2 className="mb-4 text-xl font-semibold">Select Your Circles</h2>
             <input
               type="text"
-              placeholder="Search circles..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="mb-4 w-full rounded border p-2"
             />
+            {sortedCircles.length === 0 && (
+              <div className="mb-4 text-center text-gray-500">
+                No results found.
+              </div>
+            )}
             <div className="max-h-60 space-y-4 overflow-y-auto">
               {sortedCircles.map((circle) => (
                 <div key={circle.circleId} className="flex items-center">

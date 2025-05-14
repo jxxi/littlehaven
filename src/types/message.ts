@@ -11,7 +11,14 @@ export interface Message {
   createdAt: Date;
   editedAt?: Date | null;
   isPinned?: boolean;
+  user?: {
+    username: string;
+    imageUrl: string;
+  };
 }
 
 // For creating new messages
-export type CreateMessage = Omit<Message, 'id' | 'createdAt' | 'editedAt'>;
+export type CreateMessage = Omit<
+  Message,
+  'id' | 'createdAt' | 'editedAt' | 'user'
+>;

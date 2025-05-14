@@ -1,3 +1,4 @@
+import { clerkClient } from '@clerk/nextjs/server';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { eq } from 'drizzle-orm';
@@ -20,17 +21,29 @@ export async function createMessage(
   isTts?: boolean,
 ) {
   try {
-    const newMessage = await db.insert(messagesSchema).values({
-      circleId,
-      channelId,
-      userId,
-      content,
-      isTts: isTts || false,
-      mediaUrl,
-      mediaType,
-      thumbnailUrl,
-    });
-    return newMessage;
+    const [newMessage] = await db
+      .insert(messagesSchema)
+      .values({
+        circleId,
+        channelId,
+        userId,
+        content,
+        isTts: isTts || false,
+        mediaUrl,
+        mediaType,
+        thumbnailUrl,
+      })
+      .returning();
+
+    // Get user information
+    const user = await clerkClient.users.getUser(userId);
+    return {
+      ...newMessage,
+      user: {
+        username: user.username || 'Unknown User',
+        imageUrl: user.imageUrl,
+      },
+    };
   } catch (error) {
     throw new Error('Failed to create message');
   }
@@ -80,7 +93,22 @@ export async function getAllMessagesForChannel(channelId: string) {
     const messages = await db.query.messagesSchema.findMany({
       where: eq(messagesSchema.channelId, channelId),
     });
-    return messages; // Return the list of messages
+
+    // Get user information for each message
+    const messagesWithUsers = await Promise.all(
+      messages.map(async (message) => {
+        const user = await clerkClient.users.getUser(message.userId);
+        return {
+          ...message,
+          user: {
+            username: user.username || 'Unknown User',
+            imageUrl: user.imageUrl,
+          },
+        };
+      }),
+    );
+
+    return messagesWithUsers;
   } catch (error) {
     throw new Error('Failed to fetch messages for channel');
   }

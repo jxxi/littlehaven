@@ -1,13 +1,13 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
+import Pusher from 'pusher-js';
 import { useEffect, useState } from 'react';
 
 import Loader from '@/components/Loader';
+import type { Circle } from '@/features/circle/types';
 import { UserCircleList } from '@/features/circle/UserCircleList';
 import { MessageBox } from '@/features/dashboard/MessageBox';
-
-import type { Circle } from '../../../../types/Circle';
 
 const DashboardIndexPage = () => {
   const { user } = useUser();
@@ -15,6 +15,8 @@ const DashboardIndexPage = () => {
   const [activeCircleId, setActiveCircleId] = useState<string>();
   const [activeChannelId, setActiveChannelId] = useState<string>();
   const [loading, setLoading] = useState(true);
+  const [unreadCircles, setUnreadCircles] = useState<Set<string>>(new Set());
+  const [unreadChannels, setUnreadChannels] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchCircles = async () => {
@@ -42,27 +44,85 @@ const DashboardIndexPage = () => {
                   `Failed to fetch channels for circle ${circleId}`,
                 );
               const channels = await channelResponse.json();
-              return { circle, channels }; // Ensure you return the circleId
+              return { ...circle, channels }; // Flatten the structure
             }),
           );
 
           setCircles(circlesWithChannels);
-          // Set activeCircleId only after circlesWithChannels is populated
-          const firstCircle = circlesWithChannels[0];
-          if (firstCircle) {
-            setActiveCircleId(firstCircle.circleId); // Ensure this is set correctly
-            if (firstCircle.channels?.length > 0) {
-              setActiveChannelId(firstCircle.channels[0].channelId);
-            }
+          setActiveCircleId(circlesWithChannels[0].circleId);
+          if (circlesWithChannels[0].channels?.length > 0) {
+            setActiveChannelId(circlesWithChannels[0].channels[0].channelId);
           }
         }
       } catch (error) {
-        console.error('Error fetching circles:', error);
+        //
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchCircles();
   }, [user]); // Only run when user changes
+
+  useEffect(() => {}, [circles, activeCircleId]);
+
+  useEffect((): (() => void) => {
+    if (!user) return () => {};
+
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+    });
+
+    circles.forEach((circle) => {
+      const channel = pusher.subscribe(`circle-${circle.circleId}`);
+      channel.bind(
+        'new-message',
+        (data: { timestamp: string; channelId: string }) => {
+          if (!document.hasFocus()) {
+            setUnreadCircles((prev) => new Set(prev).add(circle.circleId));
+            setUnreadChannels((prev) => new Set(prev).add(data.channelId));
+          }
+        },
+      );
+    });
+
+    const cleanup = () => {
+      circles.forEach((circle) => {
+        pusher.unsubscribe(`circle-${circle.circleId}`);
+      });
+    };
+
+    return cleanup;
+  }, [circles, user]);
+
+  const handleCircleClick = (circleId: string) => {
+    setActiveCircleId(circleId);
+    setUnreadCircles((prev) => {
+      const next = new Set(prev);
+      next.delete(circleId);
+      return next;
+    });
+
+    // Update last read in DB
+    fetch('/api/circles/read', {
+      method: 'POST',
+      body: JSON.stringify({ circleId, userId: user?.id }),
+    });
+  };
+
+  const handleChannelClick = (channelId: string) => {
+    setActiveChannelId(channelId);
+    setUnreadChannels((prev) => {
+      const next = new Set(prev);
+      next.delete(channelId);
+      return next;
+    });
+
+    fetch('/api/channels/read', {
+      method: 'POST',
+      body: JSON.stringify({ channelId, userId: user?.id }),
+    });
+  };
 
   return (
     <div className="flex h-full flex-row">
@@ -73,8 +133,10 @@ const DashboardIndexPage = () => {
             circles={circles}
             currentCircleId={activeCircleId}
             currentChannelId={activeChannelId}
-            handleCircleClick={(circleId) => setActiveCircleId(circleId)}
-            handleChannelClick={(channelId) => setActiveChannelId(channelId)}
+            unreadCircles={unreadCircles}
+            unreadChannels={unreadChannels}
+            handleCircleClick={handleCircleClick}
+            handleChannelClick={handleChannelClick}
           />
         ) : (
           <div className="p-4 text-center">No circles available</div>

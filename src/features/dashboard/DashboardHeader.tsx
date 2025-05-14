@@ -4,7 +4,6 @@ import { UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 
 import { ActiveLink } from '@/components/ActiveLink';
-import LocaleSwitcher from '@/components/LocaleSwitcher';
 import { ToggleMenuButton } from '@/components/ToggleMenuButton';
 import {
   DropdownMenu,
@@ -69,9 +68,9 @@ const DashboardHeader = (props: {
             </div>
           </li>
 
-          <li>
+          {/* <li>
             <LocaleSwitcher />
-          </li>
+          </li> */}
 
           <li>
             <UserButton

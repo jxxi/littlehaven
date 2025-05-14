@@ -1,13 +1,18 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import { defineConfig } from 'drizzle-kit';
+import * as dotenv from 'dotenv';
+import type { Config } from 'drizzle-kit';
 
-export default defineConfig({
-  out: './migrations',
+// Load environment variables based on NODE_ENV
+const env = process.env.NODE_ENV || 'development';
+dotenv.config({
+  path: env === 'production' ? '.env.production' : '.env.local',
+});
+
+export default {
   schema: './src/models/Schema.ts',
+  out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? '',
+    url: process.env.DATABASE_URL!,
   },
-  verbose: true,
-  strict: true,
-});
+} satisfies Config;

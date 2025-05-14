@@ -54,23 +54,24 @@ const GifPicker = ({ onSelect, onClose }: GifPickerProps) => {
         />
       </div>
 
-      <div className="grid h-96 grid-cols-2 gap-2 overflow-y-auto">
+      <div className="grid max-h-96 grid-cols-2 gap-2 overflow-y-auto">
         {gifs?.map((gif) => (
-          <button
-            type="button"
-            key={gif.id}
-            onClick={() => onSelect({ url: gif.url, preview: gif.preview })}
-            className="overflow-hidden rounded-md hover:opacity-80"
-          >
-            <Image
-              src={gif.preview}
-              alt="GIF"
-              width={200}
-              height={200}
-              className="size-full object-cover"
-              unoptimized
-            />
-          </button>
+          <div key={gif.id} className="aspect-square w-full">
+            <button
+              type="button"
+              onClick={() => onSelect({ url: gif.url, preview: gif.preview })}
+              className="relative size-full overflow-hidden rounded-md hover:opacity-80"
+            >
+              <Image
+                src={gif.preview}
+                alt="GIF"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover"
+                unoptimized
+              />
+            </button>
+          </div>
         ))}
       </div>
     </div>

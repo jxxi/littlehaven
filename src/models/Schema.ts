@@ -22,6 +22,7 @@ export const circlesSchema = pgTable('circles', {
   maxMembers: integer('max_members').default(500000),
   description: text('description'),
   isPublic: boolean('is_public').default(false),
+  lastMessageTimestamp: timestamp('last_message_timestamp').defaultNow(),
 });
 
 export type InsertCircle = typeof circlesSchema.$inferInsert;
@@ -59,6 +60,7 @@ export const channelSchema = pgTable('channels', {
   isNsfw: boolean('is_nsfw').default(false),
   rateLimitPerUser: integer('rate_limit_per_user').default(0),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  lastMessageTimestamp: timestamp('last_message_timestamp').defaultNow(),
 });
 
 export type Insertchannel = typeof channelSchema.$inferInsert;
@@ -159,6 +161,7 @@ export const circleMembersSchema = pgTable(
     joinedAt: timestamp('joined_at', { mode: 'date' }).defaultNow().notNull(),
     isDeafened: boolean('is_deafened').default(false),
     isMuted: boolean('is_muted').default(false),
+    lastReadTimestamp: timestamp('last_read_timestamp').defaultNow(),
   },
   (table) => ({
     pk: (table.circleId, table.userId),
@@ -222,3 +225,15 @@ export const circleTagsSchema = pgTable(
 
 export type InsertCircleTag = typeof circleTagsSchema.$inferInsert;
 export type SelectCircleTag = typeof circleTagsSchema.$inferSelect;
+
+export const userChannelsSchema = pgTable(
+  'user_channels',
+  {
+    userId: varchar('user_id', { length: 40 }).notNull(),
+    channelId: uuid('channel_id').references(() => channelSchema.channelId),
+    lastReadTimestamp: timestamp('last_read_timestamp').defaultNow(),
+  },
+  (table) => ({
+    pk: primaryKey(table.userId, table.channelId),
+  }),
+);

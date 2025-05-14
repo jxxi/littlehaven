@@ -3,22 +3,26 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 
-import type { Circle } from '../../types/Circle';
+import type { Circle } from './types';
 
 interface UserCircleListProps {
   circles: Circle[];
+  currentCircleId?: string;
+  currentChannelId?: string;
+  unreadCircles: Set<string>;
+  unreadChannels: Set<string>;
   handleCircleClick: (circleId: string) => void;
   handleChannelClick: (channelId: string) => void;
-  currentChannelId: string | undefined;
-  currentCircleId: string | undefined;
 }
 
 const UserCircleList: React.FC<UserCircleListProps> = ({
   circles,
+  currentCircleId,
+  currentChannelId,
+  unreadCircles,
+  unreadChannels,
   handleCircleClick,
   handleChannelClick,
-  currentChannelId,
-  currentCircleId,
 }) => {
   const selectedCircleIndex = circles.findIndex(
     (circle) => circle.circleId === currentCircleId,
@@ -45,9 +49,13 @@ const UserCircleList: React.FC<UserCircleListProps> = ({
         {circles.map((circle, index) => (
           <Button
             key={circle.circleId}
-            className={`mb-2 flex w-full cursor-pointer items-center rounded-md border bg-white p-3 
-                ${selectedIndex === index ? 'ring-4 ring-sky-200' : 'border-transparent'} 
-                hover:bg-blue-200`}
+            className={`
+              mb-2 flex h-12 w-full cursor-pointer items-center rounded-md border bg-white p-3 
+              ${selectedIndex === index ? 'ring-4 ring-sky-200' : 'border-transparent'} 
+              hover:bg-blue-50
+              ${unreadCircles.has(circle.circleId) ? 'bg-blue-100 font-bold' : ''}
+              ${currentCircleId === circle.circleId ? 'bg-gray-200' : ''}
+            `}
             onClick={() => {
               setSelectedIndex(index);
               handleCircleClick(circle.circleId);
@@ -57,11 +65,12 @@ const UserCircleList: React.FC<UserCircleListProps> = ({
             <Image
               key={circle.circleId}
               src={
-                circle.icon || '/assets/images/default-circle-icon-removebg.png'
+                circle.iconUrl ||
+                '/assets/images/default-circle-icon-removebg.png'
               }
               alt=""
-              width={64}
-              height={64}
+              width={50}
+              height={50}
               className="mr-2"
             />
           </Button>
@@ -76,13 +85,20 @@ const UserCircleList: React.FC<UserCircleListProps> = ({
             {circles[selectedIndex].channels.map((channel) => (
               <Button
                 key={channel.channelId}
-                className={`mb-1 rounded px-2 py-1 text-white ${currentChannel === channel.channelId ? 'bg-black' : 'bg-gray-400'}`}
+                className={`
+                  mb-1 w-full rounded-md px-3 py-2 text-left transition-colors
+                  ${unreadChannels.has(channel.channelId) ? 'bg-blue-50 font-bold' : ''}
+                  ${currentChannel === channel.channelId ? 'bg-gray-100' : ''}
+                `}
                 onClick={() => {
-                  handleChannelClick(channel.channelId);
-                  setCurrentChannel(channel.channelId);
+                  if (selectedIndex !== null && circles[selectedIndex]) {
+                    handleChannelClick(channel.channelId);
+                    handleCircleClick(circles[selectedIndex].circleId);
+                    setCurrentChannel(channel.channelId);
+                  }
                 }}
               >
-                {channel.name}
+                #{channel.name}
               </Button>
             ))}
           </div>

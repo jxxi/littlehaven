@@ -22,10 +22,20 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
+  socket.on('joinChannel', (channelId) => {
+    socket.join(channelId);
+    console.log(`User ${socket.id} joined channel ${channelId}`);
+  });
+
+  socket.on('leaveChannel', (channelId) => {
+    socket.leave(channelId);
+    console.log(`User ${socket.id} left channel ${channelId}`);
+  });
+
   socket.on('sendMessage', (message) => {
     console.log('Message received:', message);
-    // Broadcast the message to all connected clients
-    io.emit('receiveMessage', message);
+    // Broadcast only to users in the same channel
+    io.to(message.channelId).emit('receiveMessage', message);
   });
 
   socket.on('disconnect', () => {
