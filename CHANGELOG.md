@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/jxxi/circles/compare/v1.3.0...v1.4.0) (2025-05-15)
+
+
+### Features
+
+* implement circle read status API and refactor operations ([a36dba8](https://github.com/jxxi/circles/commit/a36dba84ede90d079717f615af8509f5e0dff490))
+
 # [1.3.0](https://github.com/smtheard/babybumpers/compare/v1.2.0...v1.3.0) (2025-01-30)
 
 
