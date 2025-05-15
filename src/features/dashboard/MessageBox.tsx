@@ -53,7 +53,7 @@ const MessageBox = ({
         const circleMessages = await response.json();
         setMessages(circleMessages);
       } catch (error) {
-        console.error('Error fetching messages:', error);
+        // TODO: Show error notification to user
       } finally {
         setLoading(false); // Set loading to false after fetching messages
       }
@@ -64,7 +64,7 @@ const MessageBox = ({
 
   const handleSendMessage = async () => {
     if (!message.trim() || !currentCircleId || !currentChannelId) {
-      console.log('', currentCircleId, currentChannelId);
+      // TODO: Show error notification to user
       return;
     }
 
@@ -95,7 +95,7 @@ const MessageBox = ({
       });
       setMessage('');
     } catch (error) {
-      console.error('Error sending message:', error);
+      // TODO: Show error notification to user
     }
   };
 

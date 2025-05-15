@@ -1,7 +1,8 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import { db } from '@/libs/DB';
 import {
+  channelSchema,
   circleMembersSchema,
   invitesSchema,
   memberRolesSchema,
@@ -235,4 +236,46 @@ export async function getAllInvitesForCircle(circleId: string) {
   } catch (error) {
     throw new Error('Failed to fetch invites for circle');
   }
+}
+
+export async function updateCircleLastRead(userId: string, circleId: string) {
+  return db
+    .update(circleMembersSchema)
+    .set({ lastReadTimestamp: new Date() })
+    .where(
+      and(
+        eq(circleMembersSchema.userId, userId),
+        eq(circleMembersSchema.circleId, circleId),
+      ),
+    );
+}
+
+export async function getUnreadStatus(userId: string) {
+  const members = await db
+    .select({
+      circleId: circleMembersSchema.circleId,
+      lastRead: circleMembersSchema.lastReadTimestamp,
+      channels: channelSchema,
+    })
+    .from(circleMembersSchema)
+    .leftJoin(
+      channelSchema,
+      eq(channelSchema.circleId, circleMembersSchema.circleId),
+    )
+    .where(eq(circleMembersSchema.userId, userId));
+
+  return members.reduce(
+    (acc, member) => {
+      const isUnread = member.channels.lastMessageTimestamp > member.lastRead;
+      if (isUnread) {
+        acc.unreadCircles.add(member.circleId);
+        acc.unreadChannels.add(member.channels.channelId);
+      }
+      return acc;
+    },
+    {
+      unreadCircles: new Set<string>(),
+      unreadChannels: new Set<string>(),
+    },
+  );
 }

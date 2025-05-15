@@ -2,7 +2,11 @@
 import { eq } from 'drizzle-orm';
 
 import { db } from '@/libs/DB'; // Adjust the import based on your database setup
-import { channelPermissionsSchema, channelSchema } from '@/models/Schema';
+import {
+  channelPermissionsSchema,
+  channelSchema,
+  userChannelsSchema,
+} from '@/models/Schema';
 
 // Create a new channel
 export async function createChannel(
@@ -156,4 +160,14 @@ export async function getAllPermissionsForChannel(channelId: string) {
   } catch (error) {
     throw new Error('Failed to fetch permissions for channel');
   }
+}
+
+export async function updateChannelLastRead(userId: string, channelId: string) {
+  return db
+    .insert(userChannelsSchema)
+    .values({ userId, channelId, lastReadTimestamp: new Date() })
+    .onConflictDoUpdate({
+      target: [userChannelsSchema.userId, userChannelsSchema.channelId],
+      set: { lastReadTimestamp: new Date() },
+    });
 }

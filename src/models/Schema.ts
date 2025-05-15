@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm';
 import {
   bigint,
   boolean,
@@ -23,6 +24,7 @@ export const circlesSchema = pgTable('circles', {
   description: text('description'),
   isPublic: boolean('is_public').default(false),
   lastMessageTimestamp: timestamp('last_message_timestamp').defaultNow(),
+  memberCount: integer('member_count').notNull().default(0),
 });
 
 export type InsertCircle = typeof circlesSchema.$inferInsert;
@@ -151,10 +153,11 @@ export type SelectReaction = typeof reactionsSchema.$inferSelect;
 export const circleMembersSchema = pgTable(
   'circle_members',
   {
-    memberId: uuid('member_id').defaultRandom().primaryKey(),
-    circleId: uuid('circle_id').references(() => circlesSchema.circleId, {
-      onDelete: 'cascade',
-    }),
+    circleId: uuid('circle_id')
+      .references(() => circlesSchema.circleId, {
+        onDelete: 'cascade',
+      })
+      .notNull(),
     userId: varchar('user_id', { length: 40 }).notNull(),
     nickname: varchar('nickname', { length: 12 }),
     bio: varchar('bio', { length: 32 }),
@@ -164,7 +167,7 @@ export const circleMembersSchema = pgTable(
     lastReadTimestamp: timestamp('last_read_timestamp').defaultNow(),
   },
   (table) => ({
-    pk: (table.circleId, table.userId),
+    pk: primaryKey(table.circleId, table.userId),
   }),
 );
 
@@ -235,5 +238,19 @@ export const userChannelsSchema = pgTable(
   },
   (table) => ({
     pk: primaryKey(table.userId, table.channelId),
+  }),
+);
+
+export const circlesRelations = relations(circlesSchema, ({ many }) => ({
+  members: many(circleMembersSchema),
+}));
+
+export const circleMembersRelations = relations(
+  circleMembersSchema,
+  ({ one }) => ({
+    circle: one(circlesSchema, {
+      fields: [circleMembersSchema.circleId],
+      references: [circlesSchema.circleId],
+    }),
   }),
 );

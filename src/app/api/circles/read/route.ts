@@ -1,4 +1,4 @@
-import { updateCircleLastRead } from '@/features/circle/operations';
+import { updateCircleLastRead } from '@/utils/circle/member/operations';
 
 export async function POST(req: Request) {
   const { circleId, userId } = await req.json();

@@ -1,4 +1,4 @@
-import { updateChannelLastRead } from '@/features/circle/operations';
+import { updateChannelLastRead } from '@/utils/channel/operations';
 
 export async function POST(req: Request) {
   const { channelId, userId } = await req.json();
