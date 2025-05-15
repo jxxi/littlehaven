@@ -62,6 +62,13 @@ export default function IndexPage(props: { params: { locale: string } }) {
           Join Your Circle
           <ArrowRightIcon className="ml-2 size-5" />
         </Link>
+        <Link
+          href="/sign-in"
+          className="ml-4 inline-flex items-center rounded-full border border-black bg-white px-6 py-2 text-lg font-semibold text-black transition duration-300 hover:bg-blue-50"
+        >
+          Sign In
+          <ArrowRightIcon className="ml-2 size-5" />
+        </Link>
       </div>
     </main>
   );

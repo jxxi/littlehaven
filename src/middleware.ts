@@ -28,6 +28,15 @@ export default function middleware(
   ) {
     return clerkMiddleware((auth, req) => {
       const authObj = auth();
+      const { userId } = authObj;
+
+      // If user is authenticated and trying to access sign-up, redirect to dashboard
+      if (userId && req.nextUrl.pathname.includes('/sign-up')) {
+        const locale =
+          req.nextUrl.pathname.match(/(\/.*)\/sign-up/)?.at(1) ?? '';
+        const dashboardUrl = new URL(`${locale}/dashboard`, req.url);
+        return Response.redirect(dashboardUrl);
+      }
 
       if (isProtectedRoute(req)) {
         const locale =

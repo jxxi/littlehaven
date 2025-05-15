@@ -2,6 +2,12 @@ import Image from 'next/image';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 import type { Circle } from './types';
 
@@ -62,17 +68,26 @@ const UserCircleList: React.FC<UserCircleListProps> = ({
               setCurrentChannel(circle.channels?.[0]?.channelId);
             }}
           >
-            <Image
-              key={circle.circleId}
-              src={
-                circle.iconUrl ||
-                '/assets/images/default-circle-icon-removebg.png'
-              }
-              alt=""
-              width={50}
-              height={50}
-              className="mr-2"
-            />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Image
+                    key={circle.circleId}
+                    src={
+                      circle.iconUrl ||
+                      '/assets/images/default-circle-icon-removebg.png'
+                    }
+                    alt=""
+                    width={50}
+                    height={50}
+                    className="mr-2"
+                  />
+                </TooltipTrigger>
+                <TooltipContent className="z-[100]">
+                  <p>{circle.description || circle.name}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </Button>
         ))}
       </div>

@@ -32,6 +32,10 @@ export default function DashboardLayout(props: { children: React.ReactNode }) {
               label: t('members'),
             },
             {
+              href: '/dashboard/search',
+              label: t('members'),
+            },
+            {
               href: '/dashboard/circle-profile',
               label: t('settings'),
             },
