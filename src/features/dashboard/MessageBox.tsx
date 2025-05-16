@@ -54,11 +54,17 @@ const MessageBox = ({
         if (!currentCircleId || !currentChannelId) return;
         setMessages([]); // Clear messages before fetching new ones
         const response = await fetch(
-          `/api/circles/messages?circleId=${currentCircleId}&channelId=${currentChannelId}`,
+          `/api/messages?circleId=${currentCircleId}&channelId=${currentChannelId}`,
         );
         if (!response.ok) throw new Error('Failed to fetch messages');
         const circleMessages = await response.json();
-        setMessages(circleMessages);
+        //
+        setMessages(
+          circleMessages.map((msg) => ({
+            ...msg,
+            id: msg.id || msg.messageId,
+          })),
+        );
       } catch (error) {
         // TODO: Show error notification to user
       } finally {
@@ -225,6 +231,7 @@ const MessageBox = ({
       <Messages
         messages={messages}
         currentUserId={userId}
+        currentChannelId={currentChannelId}
         onDelete={(id) =>
           setMessages((msgs) => msgs.filter((m) => m.id !== id))
         }

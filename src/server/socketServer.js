@@ -20,31 +20,40 @@ const io = new Server(server, {
 });
 
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
-
   socket.on('joinChannel', (channelId) => {
     socket.join(channelId);
-    console.log(`User ${socket.id} joined channel ${channelId}`);
+    // console.log(`User ${socket.id} joined channel ${channelId}`);
   });
 
   socket.on('leaveChannel', (channelId) => {
     socket.leave(channelId);
-    console.log(`User ${socket.id} left channel ${channelId}`);
+    // console.log(`User ${socket.id} left channel ${channelId}`);
   });
 
   socket.on('sendMessage', (message) => {
-    console.log('Message received:', message);
+    // console.log('Message received:', message);
     // Broadcast only to users in the same channel
     io.to(message.channelId).emit('receiveMessage', message);
   });
 
+  // --- Reaction events ---
+  socket.on('addReaction', (data) => {
+    // data: { messageId, emoji, userId, channelId }
+    io.to(data.channelId).emit('reactionAdded', data);
+  });
+
+  socket.on('removeReaction', (data) => {
+    // data: { messageId, emoji, userId, channelId }
+    io.to(data.channelId).emit('reactionRemoved', data);
+  });
+
   socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+    // console.log('User disconnected:', socket.id);
   });
 });
 
 // Start the server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Socket.IO server running on port ${PORT}`);
+  // console.log(`Socket.IO server running on port ${PORT}`);
 });

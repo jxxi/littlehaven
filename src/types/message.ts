@@ -17,6 +17,7 @@ export interface Message {
   };
   replyToMessageId?: string;
   replyToMessage?: Message;
+  reactions?: { emoji: string; userIds: string[] }[];
 }
 
 // For creating new messages

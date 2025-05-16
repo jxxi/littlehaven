@@ -8,6 +8,13 @@
       "when": 1747261720170,
       "tag": "0000_milky_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1747430436378,
+      "tag": "0001_yellow_red_shift",
+      "breakpoints": true
     }
   ]
 }

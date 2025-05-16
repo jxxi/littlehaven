@@ -1,7 +1,7 @@
 import { clerkClient } from '@clerk/nextjs/server';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
-import { eq } from 'drizzle-orm';
+import { asc, desc, eq, gt, lt } from 'drizzle-orm';
 
 import { db } from '@/libs/DB';
 import {
@@ -259,4 +259,69 @@ export async function generateThumbnail(
   } catch (error) {
     return undefined;
   }
+}
+
+export async function getAllMessagesWithReactionsForChannel(
+  channelId: string,
+  options?: { before?: string; after?: string; limit?: number },
+) {
+  const { before, after, limit = 50 } = options || {};
+  // Build where clause
+  const where = [eq(messagesSchema.channelId, channelId)];
+  let order = desc(messagesSchema.createdAt);
+  let reverse = true;
+  if (after) {
+    where.push(gt(messagesSchema.createdAt, new Date(after)));
+    order = asc(messagesSchema.createdAt);
+    reverse = false;
+  } else if (before) {
+    where.push(lt(messagesSchema.createdAt, new Date(before)));
+    order = desc(messagesSchema.createdAt);
+    reverse = true;
+  }
+  // Join messages and reactions
+  const rows = await db
+    .select({
+      ...messagesSchema,
+      reactionUserId: reactionsSchema.userId,
+      reactionEmoji: reactionsSchema.emoji,
+    })
+    .from(messagesSchema)
+    .leftJoin(
+      reactionsSchema,
+      eq(messagesSchema.messageId, reactionsSchema.messageId),
+    )
+    .where(where.length > 1 ? { and: where } : where[0])
+    .orderBy(order)
+    .limit(limit);
+
+  // Group by message, then group reactions by emoji
+  const messageMap = new Map();
+  for (const row of rows) {
+    const msgId = row.messageId;
+    if (!messageMap.has(msgId)) {
+      messageMap.set(msgId, {
+        ...row,
+        reactions: {},
+      });
+    }
+    if (row.reactionEmoji && row.reactionUserId) {
+      const msg = messageMap.get(msgId);
+      if (!msg.reactions[row.reactionEmoji]) {
+        msg.reactions[row.reactionEmoji] = [];
+      }
+      msg.reactions[row.reactionEmoji].push(row.reactionUserId);
+    }
+  }
+
+  // Convert reactions object to array
+  let result = Array.from(messageMap.values()).map((msg) => ({
+    ...msg,
+    reactions: Object.entries(msg.reactions).map(([emoji, userIds]) => ({
+      emoji,
+      userIds,
+    })),
+  }));
+  if (reverse) result = result.reverse();
+  return result;
 }

@@ -4,7 +4,6 @@ import {
   boolean,
   integer,
   pgTable,
-  primaryKey,
   text,
   timestamp,
   uuid,
@@ -143,7 +142,7 @@ export const reactionsSchema = pgTable(
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   },
   (table) => ({
-    pk: primaryKey(table.messageId, table.userId, table.emoji),
+    pk: (table.messageId, table.userId, table.emoji),
   }),
 );
 
@@ -167,7 +166,7 @@ export const circleMembersSchema = pgTable(
     lastReadTimestamp: timestamp('last_read_timestamp').defaultNow(),
   },
   (table) => ({
-    pk: primaryKey(table.circleId, table.userId),
+    pk: (table.circleId, table.userId),
   }),
 );
 
@@ -222,7 +221,7 @@ export const circleTagsSchema = pgTable(
     addedAt: timestamp('added_at', { mode: 'date' }).defaultNow().notNull(),
   },
   (table) => ({
-    pk: primaryKey(table.circleId, table.tagName),
+    pk: (table.circleId, table.tagName),
   }),
 );
 
@@ -237,7 +236,7 @@ export const userChannelsSchema = pgTable(
     lastReadTimestamp: timestamp('last_read_timestamp').defaultNow(),
   },
   (table) => ({
-    pk: primaryKey(table.userId, table.channelId),
+    pk: (table.userId, table.channelId),
   }),
 );
 

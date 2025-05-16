@@ -1,11 +1,11 @@
 import { put } from '@vercel/blob';
 import { nanoid } from 'nanoid';
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 import {
   createMessage,
   generateThumbnail,
+  getAllMessagesWithReactionsForChannel,
   updateMessage,
 } from '@/utils/message/operations';
 
@@ -50,6 +50,45 @@ const createMediaMessage = async (
     poster,
   );
 };
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const circleId = searchParams.get('circleId');
+  const channelId = searchParams.get('channelId');
+  const before = searchParams.get('before');
+  const after = searchParams.get('after');
+  const limit = searchParams.get('limit')
+    ? parseInt(searchParams.get('limit')!, 10)
+    : 50;
+
+  if (!circleId || !channelId) {
+    return NextResponse.json(
+      { error: 'Both Circle and Channel Id are required' },
+      { status: 400 },
+    );
+  }
+
+  try {
+    let messagesWithReactions;
+    if (after) {
+      messagesWithReactions = await getAllMessagesWithReactionsForChannel(
+        channelId,
+        { after: after || undefined, limit },
+      );
+    } else {
+      messagesWithReactions = await getAllMessagesWithReactionsForChannel(
+        channelId,
+        { before: before || undefined, limit },
+      );
+    }
+    return NextResponse.json(messagesWithReactions);
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to fetch messages' },
+      { status: 500 },
+    );
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
