@@ -23,6 +23,12 @@ const MessageBox = ({
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [showGifPicker, setShowGifPicker] = useState(false);
+  const [replyToMap, setReplyToMap] = useState<Record<string, Message | null>>(
+    {},
+  );
+  const replyTo = currentChannelId
+    ? (replyToMap[currentChannelId] ?? null)
+    : null;
 
   useEffect(() => {
     // Join the channel room when component mounts
@@ -75,6 +81,7 @@ const MessageBox = ({
       userId,
       content: message,
       isTts: false,
+      replyToMessageId: replyTo?.id,
     };
 
     try {
@@ -95,6 +102,8 @@ const MessageBox = ({
         channelId: currentChannelId,
       });
       setMessage('');
+      if (currentChannelId)
+        setReplyToMap((prev) => ({ ...prev, [currentChannelId]: null }));
     } catch (error) {
       // TODO: Show error notification to user
     }
@@ -116,7 +125,7 @@ const MessageBox = ({
         formData.append('type', type);
 
         // Upload file
-        const response = await fetch('/api/upload', {
+        const response = await fetch('/api/messages', {
           method: 'POST',
           body: formData,
         });
@@ -177,17 +186,99 @@ const MessageBox = ({
     }
   };
 
+  // Build a lookup map for replies
+  const replyLookup = new Map(messages.map((m) => [m.id, m]));
+
+  const handleSetReplyTo = (msg: Message | null) => {
+    if (!currentChannelId) return;
+    setReplyToMap((prev) => ({ ...prev, [currentChannelId]: msg }));
+  };
+
+  const handleEditMessage = async (msg: Message, newContent: string) => {
+    try {
+      const response = await fetch('/api/messages', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messageId: msg.id,
+          userId,
+          content: newContent,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to edit message');
+
+      setMessages((msgs) =>
+        msgs.map((m) =>
+          m.id === msg.id
+            ? { ...m, content: newContent, editedAt: new Date() }
+            : m,
+        ),
+      );
+    } catch (error) {
+      // Handle error
+    }
+  };
+
   return (
     <div className="relative h-full flex-col rounded-md border border-black bg-white p-4 pb-20 shadow-md">
-      <Messages messages={messages} />
-      <div className="absolute inset-x-0 bottom-0 flex items-center space-x-2 rounded-md bg-gray-200 p-4">
-        <UserButton />
-        <div className="relative grow">
+      <Messages
+        messages={messages}
+        currentUserId={userId}
+        onDelete={(id) =>
+          setMessages((msgs) => msgs.filter((m) => m.id !== id))
+        }
+        onReply={handleSetReplyTo}
+        replyLookup={replyLookup}
+        onEdit={handleEditMessage}
+      />
+      <div className="flex flex-row">
+        <div className="relative flex grow flex-col">
+          {replyTo && (
+            <div className="mb-2 flex items-center rounded border-l-4 border-blue-400 bg-blue-50 px-2 py-1 text-xs text-blue-800">
+              <span className="mr-2 font-semibold">
+                Replying to {replyTo.user?.username || 'user'}:
+              </span>
+              <span className="max-w-xs truncate">{replyTo.content}</span>
+              <button
+                className="ml-2 text-gray-400 hover:text-gray-700"
+                type="button"
+                aria-label="Cancel reply"
+                onClick={() => handleSetReplyTo(null)}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="flex flex-row">
+        <div className="absolute inset-x-0 bottom-0 flex items-center space-x-2 rounded-md bg-gray-200 p-4">
+          <UserButton />
+
           <input
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Message"
+            placeholder={
+              replyTo
+                ? `Replying to ${replyTo.user?.username || 'user'}...`
+                : 'Message'
+            }
             className="w-full rounded-md bg-gray-100 px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -237,13 +328,13 @@ const MessageBox = ({
             </button>
           </div>
         </div>
+        {showGifPicker && (
+          <GifPicker
+            onSelect={handleGifSelect}
+            onClose={() => setShowGifPicker(false)}
+          />
+        )}
       </div>
-      {showGifPicker && (
-        <GifPicker
-          onSelect={handleGifSelect}
-          onClose={() => setShowGifPicker(false)}
-        />
-      )}
     </div>
   );
 };

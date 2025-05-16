@@ -15,10 +15,12 @@ export interface Message {
     username: string;
     imageUrl: string;
   };
+  replyToMessageId?: string;
+  replyToMessage?: Message;
 }
 
 // For creating new messages
 export type CreateMessage = Omit<
   Message,
-  'id' | 'createdAt' | 'editedAt' | 'user'
->;
+  'id' | 'createdAt' | 'editedAt' | 'user' | 'replyToMessage'
+> & { replyToMessageId?: string };

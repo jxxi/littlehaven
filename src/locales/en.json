@@ -95,8 +95,8 @@
     "settings": "Settings"
   },
   "Dashboard": {
-    "meta_title": "SaaS Template Dashboard",
-    "meta_description": "A free and open-source landing page template for your SaaS business, built with Next.js, TypeScript, Shadcn UI, and Tailwind CSS."
+    "meta_title": "Circles",
+    "meta_description": "Circles is a platform for creating and joining communities for parents."
   },
   "DashboardIndex": {
     "title_bar": "Dashboard",

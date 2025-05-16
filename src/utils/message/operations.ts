@@ -19,6 +19,7 @@ export async function createMessage(
   mediaType?: string,
   thumbnailUrl?: string,
   isTts?: boolean,
+  replyToMessageId?: string,
 ) {
   try {
     const [newMessage] = await db
@@ -32,6 +33,7 @@ export async function createMessage(
         mediaUrl,
         mediaType,
         thumbnailUrl,
+        replyToMessageId,
       })
       .returning();
 
@@ -245,7 +247,7 @@ export async function generateThumbnail(
     formData.append('file', thumbnailBlob, 'thumbnail.png');
     formData.append('type', 'thumbnail');
 
-    const response = await fetch('/api/upload', {
+    const response = await fetch('/api/messages', {
       method: 'POST',
       body: formData,
     });
