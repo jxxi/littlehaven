@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/jxxi/circles/compare/v1.4.0...v1.5.0) (2025-05-15)
+
+
+### Features
+
+* add search functionality and redirect logic ([dec67ed](https://github.com/jxxi/circles/commit/dec67edf18346b08202b45a4c00e662e570357b7))
+
 # [1.4.0](https://github.com/jxxi/circles/compare/v1.3.0...v1.4.0) (2025-05-15)
 
 
