@@ -5,7 +5,6 @@ import { type NextRequest, NextResponse } from 'next/server';
 import {
   generateThumbnail,
   getAllMessagesForChannel,
-  getAllMessagesForCircle,
 } from '@/utils/message/operations';
 
 export async function GET(request: NextRequest) {
@@ -13,29 +12,26 @@ export async function GET(request: NextRequest) {
   const circleId = searchParams.get('circleId');
   const channelId = searchParams.get('channelId');
 
-  if (!circleId && !channelId) {
+  if (!circleId || !channelId) {
     return NextResponse.json(
-      { error: 'Circle or Channel Id are required' },
+      { error: 'Both Circle and Channel Id are required' },
       { status: 400 },
     );
   }
 
   try {
-    if (channelId) {
-      const messages = await getAllMessagesForChannel(channelId);
-      return NextResponse.json(messages);
-    }
-    if (circleId) {
-      const messages = await getAllMessagesForCircle(circleId);
-      return NextResponse.json(messages);
-    }
+    const messages = await getAllMessagesForChannel(channelId);
+    // Filter messages to ensure they belong to the correct circle
+    const filteredMessages = messages.filter(
+      (msg) => msg.circleId === circleId,
+    );
+    return NextResponse.json(filteredMessages);
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to fetch messages' },
       { status: 500 },
     );
   }
-  return NextResponse.json({ error: 'No messages found' }, { status: 404 });
 }
 
 export async function POST(req: Request) {

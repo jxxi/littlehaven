@@ -45,9 +45,10 @@ const MessageBox = ({
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        if (!currentCircleId && !currentChannelId) return;
+        if (!currentCircleId || !currentChannelId) return;
+        setMessages([]); // Clear messages before fetching new ones
         const response = await fetch(
-          `/api/circles/messages?channelId=${currentChannelId}`,
+          `/api/circles/messages?circleId=${currentCircleId}&channelId=${currentChannelId}`,
         );
         if (!response.ok) throw new Error('Failed to fetch messages');
         const circleMessages = await response.json();

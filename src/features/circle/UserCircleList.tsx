@@ -60,7 +60,6 @@ const UserCircleList: React.FC<UserCircleListProps> = ({
               ${selectedIndex === index ? 'ring-4 ring-sky-200' : 'border-transparent'} 
               hover:bg-blue-50
               ${unreadCircles.has(circle.circleId) ? 'bg-blue-100 font-bold' : ''}
-              ${currentCircleId === circle.circleId ? 'bg-gray-200' : ''}
             `}
             onClick={() => {
               setSelectedIndex(index);
@@ -83,8 +82,9 @@ const UserCircleList: React.FC<UserCircleListProps> = ({
                     className="mr-2"
                   />
                 </TooltipTrigger>
-                <TooltipContent className="z-[100]">
-                  <p>{circle.description || circle.name}</p>
+                <TooltipContent className="z-[100] bg-gray-700 text-white">
+                  <p className="font-bold">{circle.name}</p>
+                  <p>{circle.description}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -93,17 +93,14 @@ const UserCircleList: React.FC<UserCircleListProps> = ({
       </div>
       <div className="w-2/3 rounded-md bg-gray-100 p-3">
         {selectedIndex !== null && circles[selectedIndex] && (
-          <div className="flex flex-col space-y-1">
-            <h2 className="mb-2 text-lg font-bold text-gray-800">
-              {circles[selectedIndex].name}
-            </h2>
+          <div className="flex flex-col">
             {circles[selectedIndex].channels.map((channel) => (
               <Button
                 key={channel.channelId}
                 className={`
-                  mb-1 w-full rounded-md px-3 py-2 text-left transition-colors
-                  ${unreadChannels.has(channel.channelId) ? 'bg-blue-50 font-bold' : ''}
-                  ${currentChannel === channel.channelId ? 'bg-gray-100' : ''}
+                  mb-1 w-full rounded-md bg-white  px-3 py-2 text-left text-muted-foreground transition-colors hover:bg-blue-200
+                  ${unreadChannels.has(channel.channelId) ? 'font-bold text-black' : ''}
+                  ${currentChannel === channel.channelId ? 'bg-blue-100 text-black ' : ''}
                 `}
                 onClick={() => {
                   if (selectedIndex !== null && circles[selectedIndex]) {

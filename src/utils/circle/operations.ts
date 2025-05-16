@@ -32,16 +32,30 @@ export async function getCirclesMemberUserId(userId: string) {
 }
 
 export async function getCirclesWithMemberByUserId(userId: string) {
-  return db.query.circleMembersSchema.findMany({
-    where: eq(circleMembersSchema.userId, userId),
-    include: {
-      circles: {
-        select: {
-          name: true,
+  return db.query.circleMembersSchema
+    .findMany({
+      where: eq(circleMembersSchema.userId, userId),
+      with: {
+        circle: {
+          columns: {
+            circleId: true,
+            name: true,
+            iconUrl: true,
+            description: true,
+            memberCount: true,
+            lastMessageTimestamp: true,
+          },
         },
       },
-    },
-  });
+    })
+    .then((members) =>
+      members.map((member) => ({
+        ...member.circle,
+        joinedAt: member.joinedAt,
+        nickname: member.nickname,
+        bio: member.bio,
+      })),
+    );
 }
 
 export async function createCircle(circle: InsertCircle) {
