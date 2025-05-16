@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/jxxi/circles/compare/v1.5.0...v1.6.0) (2025-05-16)
+
+
+### Features
+
+* enhance search functionality and add channel management ([24fc403](https://github.com/jxxi/circles/commit/24fc403df6d35f28e2de6a9857d2967bdc1a4d4c))
+
 # [1.5.0](https://github.com/jxxi/circles/compare/v1.4.0...v1.5.0) (2025-05-15)
 
 
