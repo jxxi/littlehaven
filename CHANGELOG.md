@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/jxxi/circles/compare/v1.6.0...v1.7.0) (2025-05-16)
+
+
+### Features
+
+* enhance messaging features and search page layout ([896a870](https://github.com/jxxi/circles/commit/896a8705547fde95e0b5d6b4cd9a8ece3b826a36))
+
 # [1.6.0](https://github.com/jxxi/circles/compare/v1.5.0...v1.6.0) (2025-05-16)
 
 
