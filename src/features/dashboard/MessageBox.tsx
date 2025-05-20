@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { GifIcon } from '@/components/icons/GifIcon';
 
 import type { CreateMessage, Message } from '../../types/message';
+import { ChatHeader } from './ChatHeader';
 import EmojiPicker from './EmojiPicker';
 import { GifPicker } from './GifPicker';
 import { Messages } from './Messages';
@@ -26,6 +27,10 @@ const MessageBox = ({
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [showGifPicker, setShowGifPicker] = useState(false);
+
+  const [members, setMembers] = useState<
+    { id: string; name: string; avatarUrl?: string }[]
+  >([]);
   const [replyToMap, setReplyToMap] = useState<Record<string, Message | null>>(
     {},
   );
@@ -77,6 +82,24 @@ const MessageBox = ({
 
     fetchMessages();
   }, [currentCircleId, currentChannelId, userId, setLoading]);
+
+  useEffect(() => {
+    if (!currentCircleId) {
+      setMembers([]);
+      return;
+    }
+    const fetchMembers = async () => {
+      const res = await fetch(
+        `/api/circles/members?circleId=${currentCircleId}`,
+      );
+      if (res.ok) {
+        setMembers(await res.json());
+      } else {
+        setMembers([]);
+      }
+    };
+    fetchMembers();
+  }, [currentCircleId]);
 
   const handleSendMessage = async () => {
     if (!message.trim() || !currentCircleId || !currentChannelId) {
@@ -250,6 +273,13 @@ const MessageBox = ({
 
   return (
     <div className="relative h-full flex-col rounded-md border border-black bg-white p-4 pb-20 shadow-md">
+      <ChatHeader
+        members={members}
+        messages={messages}
+        onMemberClick={() => {
+          /* handle member click */
+        }}
+      />
       <Messages
         messages={messages}
         currentUserId={userId}
