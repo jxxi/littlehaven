@@ -92,7 +92,7 @@ const MessageBox = ({
       content: message,
       isTts: false,
       replyToMessageId: replyTo?.id,
-      id: tempId,
+      id: `temp-${tempId}`,
       createdAt: new Date(),
       user: {
         username: userName,

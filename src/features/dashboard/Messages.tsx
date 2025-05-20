@@ -175,10 +175,14 @@ const Messages = (props: {
   // Handler functions must be above Row
   const handleDelete = async (id: string) => {
     try {
-      // If it's a temp message (starts with temp-), just remove from UI
-      if (id.startsWith('temp-') || id.includes('-')) {
-        // UUID check
-        setAllMessages((prev) => prev.filter((msg) => msg.id !== id));
+      if (id.startsWith('temp-')) {
+        // Tell the server to cancel this temp message
+        await fetch('/api/messages/cancel-temp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tempId: id }),
+        });
+        setAllMessages((prevMsgs) => prevMsgs.filter((msg) => msg.id !== id));
         if (onDelete) onDelete(id);
         return;
       }
@@ -230,7 +234,7 @@ const Messages = (props: {
   // Auto-scroll to bottom if at bottom when new messages arrive
   useEffect(() => {
     const el = scrollRef.current;
-    if (!el) return undefined;
+    if (!el) return;
     const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
     if (isAtBottom) {
       el.scrollTop = el.scrollHeight;
@@ -240,7 +244,6 @@ const Messages = (props: {
       setShowScrollToBottom(true);
       setUnreadCount((c) => c + 1);
     }
-    return undefined;
   }, [allMessages.length]);
 
   // Listen for scroll to toggle sticky button
