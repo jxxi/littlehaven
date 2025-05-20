@@ -4,6 +4,7 @@ import { UserButton } from '@clerk/nextjs';
 import { Image } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import { v4 as uuidv4 } from 'uuid';
 
 import { GifIcon } from '@/components/icons/GifIcon';
 
@@ -16,6 +17,8 @@ const socket = io('http://localhost:3000');
 
 const MessageBox = ({
   userId,
+  userName,
+  userImage,
   currentCircleId,
   currentChannelId,
   setLoading,
@@ -81,20 +84,30 @@ const MessageBox = ({
       return;
     }
 
-    const newMessage: CreateMessage = {
+    const tempId = uuidv4();
+    const tempMessage = {
       circleId: currentCircleId,
       channelId: currentChannelId,
       userId,
       content: message,
       isTts: false,
       replyToMessageId: replyTo?.id,
-    };
+      id: tempId,
+      createdAt: new Date(),
+      user: {
+        username: userName,
+        imageUrl: userImage,
+      },
+    } as Message;
+
+    // Optimistically add message to UI
+    setMessages((prevMessages) => [...prevMessages, tempMessage]);
 
     try {
       const response = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newMessage),
+        body: JSON.stringify(tempMessage),
       });
 
       if (!response.ok) {
@@ -102,11 +115,20 @@ const MessageBox = ({
         throw new Error(error.error || 'Failed to send message');
       }
 
-      const savedMessage = await response.json();
-      socket.emit('sendMessage', {
-        ...savedMessage,
+      const dbMessage = await response.json();
+
+      // Update local state with DB message immediately
+      setMessages((prev) =>
+        prev.map((msg) => (msg.id === tempId ? dbMessage : msg)),
+      );
+
+      // Then emit socket for other clients
+      socket.emit('messageCreated', {
+        tempId,
+        dbMessage,
         channelId: currentChannelId,
       });
+
       setMessage('');
       if (currentChannelId)
         setReplyToMap((prev) => ({ ...prev, [currentChannelId]: null }));

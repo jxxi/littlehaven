@@ -1,3 +1,4 @@
+import { clerkClient } from '@clerk/nextjs/server';
 import { put } from '@vercel/blob';
 import { nanoid } from 'nanoid';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -40,7 +41,7 @@ const createMediaMessage = async (
   if (type === 'video') {
     poster = await generateThumbnail(blob.url);
   }
-  return createMessage(
+  const dbMessage = await createMessage(
     circleId,
     channelId,
     userId,
@@ -49,6 +50,17 @@ const createMediaMessage = async (
     type,
     poster,
   );
+
+  const user = await clerkClient.users.getUser(userId);
+  // After creating the message in DB
+  const createdMessage = {
+    ...dbMessage,
+    user: {
+      username: user.username,
+      imageUrl: user.imageUrl,
+    },
+  };
+  return NextResponse.json(createdMessage);
 };
 
 export async function GET(request: NextRequest) {

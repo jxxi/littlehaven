@@ -145,6 +145,8 @@ const DashboardIndexPage = () => {
       <div className="grow content-end items-end bg-pink-50 p-4">
         <MessageBox
           userId={user?.id ?? ''}
+          userName={user?.username ?? ''}
+          userImage={user?.imageUrl}
           currentCircleId={activeCircleId}
           currentChannelId={activeChannelId}
           setLoading={setLoading}

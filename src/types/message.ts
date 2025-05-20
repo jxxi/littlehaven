@@ -24,4 +24,7 @@ export interface Message {
 export type CreateMessage = Omit<
   Message,
   'id' | 'createdAt' | 'editedAt' | 'user' | 'replyToMessage'
-> & { replyToMessageId?: string };
+> & {
+  replyToMessageId?: string;
+  id?: string;
+};

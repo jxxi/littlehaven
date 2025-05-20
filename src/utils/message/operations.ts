@@ -261,6 +261,23 @@ export async function generateThumbnail(
   }
 }
 
+async function getMessagesWithUsers(messages: any[]): Promise<any[]> {
+  // Get user information for each message
+  const messagesWithUsers = await Promise.all(
+    messages.map(async (message) => {
+      const user = await clerkClient.users.getUser(message.userId);
+      return {
+        ...message,
+        user: {
+          username: user.username || 'Unknown User',
+          imageUrl: user.imageUrl,
+        },
+      };
+    }),
+  );
+  return messagesWithUsers;
+}
+
 export async function getAllMessagesWithReactionsForChannel(
   channelId: string,
   options?: { before?: string; after?: string; limit?: number },
@@ -323,5 +340,7 @@ export async function getAllMessagesWithReactionsForChannel(
     })),
   }));
   if (reverse) result = result.reverse();
+
+  result = await getMessagesWithUsers(result);
   return result;
 }

@@ -49,7 +49,7 @@ const EmojiPicker = ({ message, setMessage }) => {
         aria-label="emoji"
         ref={buttonRef}
         onClick={toggleEmojiPicker}
-        className={`rounded-full p-2 transition-colors duration-200 ${
+        className={`z-[100] rounded-full p-2 transition-colors duration-200 ${
           isOpen
             ? 'bg-gray-200 text-blue-600'
             : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
@@ -62,7 +62,7 @@ const EmojiPicker = ({ message, setMessage }) => {
       {isOpen && (
         <div
           ref={pickerRef}
-          className="absolute bottom-full z-50 mb-2 rounded-lg border bg-white shadow-lg"
+          className="absolute bottom-full z-[100] mb-2 rounded-lg border bg-white shadow-lg"
           style={{
             bottom: '100%', // Position above the button
             left: 'auto',

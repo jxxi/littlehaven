@@ -174,13 +174,58 @@ const Messages = (props: {
 
   // Handler functions must be above Row
   const handleDelete = async (id: string) => {
-    const res = await fetch('/api/messages', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messageId: id, userId: currentUserId }),
-    });
-    if (res.ok && onDelete) onDelete(id);
+    try {
+      // If it's a temp message (starts with temp-), just remove from UI
+      if (id.startsWith('temp-') || id.includes('-')) {
+        // UUID check
+        setAllMessages((prev) => prev.filter((msg) => msg.id !== id));
+        if (onDelete) onDelete(id);
+        return;
+      }
+
+      const response = await fetch('/api/messages', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId: id, userId: currentUserId }),
+      });
+
+      if (response.ok) {
+        setAllMessages((prev) => prev.filter((msg) => msg.id !== id));
+        socket.emit('deleteMessage', {
+          messageId: id,
+          channelId: currentChannelId,
+        });
+        if (onDelete) onDelete(id);
+      }
+    } catch (error) {
+      // Do nothing
+    }
   };
+
+  // Add socket listener for delete events
+  useEffect(() => {
+    socket.on('messageDeleted', (data: { messageId: string }) => {
+      setAllMessages((prev) => prev.filter((msg) => msg.id !== data.messageId));
+    });
+
+    // Add this handler for new messages with DB IDs
+    socket.on(
+      'messageCreated',
+      (data: { tempId: string; dbMessage: Message }) => {
+        setAllMessages((prev) =>
+          prev.map((msg) =>
+            // Replace temporary message with DB version containing real ID
+            msg.id === data.tempId ? data.dbMessage : msg,
+          ),
+        );
+      },
+    );
+
+    return () => {
+      socket.off('messageDeleted');
+      socket.off('messageCreated');
+    };
+  }, []);
 
   // Auto-scroll to bottom if at bottom when new messages arrive
   useEffect(() => {
@@ -229,7 +274,7 @@ const Messages = (props: {
     const msgReactions = reactions[message.id] || [];
     return (
       <div style={style}>
-        <div className="flex flex-col items-start rounded-lg bg-white p-3 shadow-md">
+        <div className="group flex flex-col items-start rounded-lg bg-white p-3 shadow-md">
           <div className="flex w-full flex-col">
             {replyMsg && (
               <div className="mb-1 rounded border-l-4 border-blue-400 bg-gray-100 px-2 py-1 text-xs text-gray-600">
@@ -242,113 +287,114 @@ const Messages = (props: {
             {message.user && (
               <div className="flex items-center space-x-2">
                 <ChatUser
-                  username={message.user.username}
-                  imageUrl={message.user.imageUrl}
+                  username={message.user?.username}
+                  imageUrl={message.user?.imageUrl}
                 />
                 <span className="text-sm text-gray-500">
                   {formatDate(message.createdAt)}
                 </span>
-                {message.userId === currentUserId && (
-                  <button
-                    className="ml-2 text-red-500 hover:text-red-700"
-                    title="Delete message"
-                    type="button"
-                    aria-label="Delete message"
-                    onClick={() => handleDelete(message.id)}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                )}
-                {message.userId === currentUserId && !message.mediaUrl && (
-                  <button
-                    className="ml-2 text-gray-400 hover:text-gray-700"
-                    title="Edit message"
-                    type="button"
-                    aria-label="Edit message"
-                    onClick={() => handleEditStart(message)}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-6 6h6v-6H3v6z"
-                      />
-                    </svg>
-                  </button>
-                )}
-                {onReply && (
-                  <button
-                    className="ml-2 text-blue-500 hover:text-blue-700"
-                    title="Reply"
-                    type="button"
-                    aria-label="Reply"
-                    onClick={() => onReply(message)}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 10v4a1 1 0 001 1h3m10-5V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2h6a2 2 0 002-2v-3"
-                      />
-                    </svg>
-                  </button>
-                )}
-                {/* Reaction button */}
-                <button
-                  className="ml-2 text-gray-500 hover:text-gray-700"
-                  title="Add Reaction"
-                  type="button"
-                  aria-label="Add Reaction"
-                  onClick={() => setPickerOpenFor(message.id)}
-                >
-                  <span role="img" aria-label="Add Reaction">
-                    🙂
-                  </span>
-                </button>
-                {pickerOpenFor === message.id && (
-                  <div className="absolute z-50 mt-2">
-                    <ReactionPicker
-                      onSelect={(emoji) => handleAddReaction(message.id, emoji)}
-                    />
+                <div className="ml-auto flex opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                  {message.userId === currentUserId && (
                     <button
-                      className="mt-1 text-xs text-gray-500 hover:text-gray-700"
+                      className="ml-2 text-red-500 hover:text-red-700"
+                      title="Delete message"
                       type="button"
-                      onClick={() => setPickerOpenFor(null)}
+                      aria-label="Delete message"
+                      onClick={() => handleDelete(message.id)}
                     >
-                      Close
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
                     </button>
-                  </div>
-                )}
+                  )}
+                  {message.userId === currentUserId && !message.mediaUrl && (
+                    <button
+                      className="ml-2 text-gray-400 hover:text-gray-700"
+                      title="Edit message"
+                      type="button"
+                      aria-label="Edit message"
+                      onClick={() => handleEditStart(message)}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-6 6h6v-6H3v6z"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                  {onReply && (
+                    <button
+                      className="ml-2 text-blue-500 hover:text-blue-700"
+                      title="Reply"
+                      type="button"
+                      aria-label="Reply"
+                      onClick={() => onReply(message)}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 10v4a1 1 0 001 1h3m10-5V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2h6a2 2 0 002-2v-3"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                  {/* Reaction button */}
+                  <button
+                    className="z-[100] ml-2 text-gray-500 hover:text-gray-700"
+                    title="Add Reaction"
+                    type="button"
+                    aria-label="Add Reaction"
+                    onClick={() => setPickerOpenFor(message.id)}
+                  >
+                    {pickerOpenFor === message.id && (
+                      <div>
+                        <ReactionPicker
+                          onSelect={(emoji) =>
+                            handleAddReaction(message.id, emoji)
+                          }
+                        />
+                        <button
+                          className="mt-1 text-xs text-gray-500 hover:text-gray-700"
+                          type="button"
+                          onClick={() => setPickerOpenFor(null)}
+                        >
+                          Close
+                        </button>
+                      </div>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
             {editingId === message.id ? (

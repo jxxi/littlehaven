@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to add reaction' },
+      { error: 'Failed to handle reaction' },
       { status: 500 },
     );
   }
@@ -44,10 +44,37 @@ export async function DELETE(request: Request) {
   }
 }
 
+// GET /api/messages/reactions?messageIds=id1,id2,id3 for multple
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const messageId = searchParams.get('messageId');
+    const messageIds = searchParams.get('messageIds')?.split(',');
+
+    // Handle batch fetch
+    if (messageIds) {
+      const reactions = await Promise.all(
+        messageIds.map((id) => getAllReactionsForMessage(id)),
+      );
+      const grouped = reactions.reduce(
+        (acc, r) => {
+          if (!r || !r.length) return acc;
+          r.forEach((reaction) => {
+            if (!reaction.emoji) return;
+            if (!acc[reaction.messageId]) acc[reaction.messageId] = [];
+            acc[reaction.messageId].push({
+              emoji: reaction.emoji,
+              userIds: [reaction.userId],
+            });
+          });
+          return acc;
+        },
+        {} as Record<string, { emoji: string; userIds: string[] }[]>,
+      );
+      return NextResponse.json(grouped);
+    }
+
+    // Handle single message fetch
     if (!messageId) {
       return NextResponse.json({ error: 'Missing messageId' }, { status: 400 });
     }
@@ -67,42 +94,6 @@ export async function GET(request: Request) {
       userIds,
     }));
     return NextResponse.json({ reactions: result });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch reactions' },
-      { status: 500 },
-    );
-  }
-}
-
-export async function POSTBATCH(request: Request) {
-  try {
-    const { messageIds } = await request.json();
-    if (!messageIds || !Array.isArray(messageIds)) {
-      return NextResponse.json(
-        { error: 'Missing or invalid messageIds' },
-        { status: 400 },
-      );
-    }
-    const reactions = await Promise.all(
-      messageIds.map((id) => getAllReactionsForMessage(id)),
-    );
-    const grouped = reactions.reduce(
-      (acc, r) => {
-        if (!r || !r.length) return acc;
-        r.forEach((reaction) => {
-          if (!reaction.emoji) return;
-          if (!acc[reaction.messageId]) acc[reaction.messageId] = [];
-          acc[reaction.messageId].push({
-            emoji: reaction.emoji,
-            userIds: [reaction.userId],
-          });
-        });
-        return acc;
-      },
-      {} as Record<string, { emoji: string; userIds: string[] }[]>,
-    );
-    return NextResponse.json(grouped);
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to fetch reactions' },
