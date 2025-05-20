@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/jxxi/circles/compare/v1.7.0...v1.7.1) (2025-05-20)
+
+
+### Bug Fixes
+
+* update temp message handling in MessageBox and Messages components ([4f0623a](https://github.com/jxxi/circles/commit/4f0623a269d943a741fe2f9714ca34bdaf60faf1))
+
 # [1.7.0](https://github.com/jxxi/circles/compare/v1.6.0...v1.7.0) (2025-05-16)
 
 
