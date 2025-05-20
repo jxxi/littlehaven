@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/jxxi/circles/compare/v1.7.1...v1.8.0) (2025-05-20)
+
+
+### Features
+
+* add MessageActions component for improved message interactions ([f95e094](https://github.com/jxxi/circles/commit/f95e0940e41430b4ab2f961dfc64e62f9c1ca247))
+
 ## [1.7.1](https://github.com/jxxi/circles/compare/v1.7.0...v1.7.1) (2025-05-20)
 
 
