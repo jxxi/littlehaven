@@ -8,7 +8,7 @@ import Loader from '@/components/Loader';
 import { formatDate } from '@/utils/Helpers';
 
 import type { Message } from '../../types/message';
-import { ReactionPicker } from './ReactionPicker';
+import { MessageActions } from './MessageActions';
 
 const socket = io('http://localhost:3000'); // or wherever your server runs
 
@@ -40,7 +40,6 @@ const Messages = (props: {
   const [hasMoreBottom, setHasMoreBottom] = useState(true);
   const [loadingTop, setLoadingTop] = useState(false);
   const [loadingBottom, setLoadingBottom] = useState(false);
-  const [pickerOpenFor, setPickerOpenFor] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -49,7 +48,21 @@ const Messages = (props: {
 
   useEffect(() => {
     setAllMessages(messages);
-  }, [messages]);
+    // Populate reactions from messages prop
+    const initialReactions = {};
+    for (const msg of messages) {
+      if (msg.reactions) initialReactions[msg.id] = msg.reactions;
+    }
+    setReactions(initialReactions);
+    setHasMoreTop(false);
+    setHasMoreBottom(false);
+    setLoadingTop(false);
+    setLoadingBottom(false);
+    setEditingId(null);
+    setEditingValue('');
+    setShowScrollToBottom(false);
+    setUnreadCount(0);
+  }, [currentChannelId, messages]);
 
   const handleEditStart = (msg: Message) => {
     setEditingId(msg.id);
@@ -80,7 +93,6 @@ const Messages = (props: {
       userId: currentUserId,
       channelId: currentChannelId,
     });
-    setPickerOpenFor(null);
     setReactions((prev) => {
       const msgReactions = prev[messageId] || [];
       const existing = msgReactions.find((r) => r.emoji === emoji);
@@ -278,7 +290,7 @@ const Messages = (props: {
     return (
       <div style={style}>
         <div className="group flex flex-col items-start rounded-lg bg-white p-3 shadow-md">
-          <div className="flex w-full flex-col">
+          <div className="float-end flex w-full flex-col">
             {replyMsg && (
               <div className="mb-1 rounded border-l-4 border-blue-400 bg-gray-100 px-2 py-1 text-xs text-gray-600">
                 <span className="font-semibold">
@@ -296,107 +308,15 @@ const Messages = (props: {
                 <span className="text-sm text-gray-500">
                   {formatDate(message.createdAt)}
                 </span>
-                <div className="ml-auto flex opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                  {message.userId === currentUserId && (
-                    <button
-                      className="ml-2 text-red-500 hover:text-red-700"
-                      title="Delete message"
-                      type="button"
-                      aria-label="Delete message"
-                      onClick={() => handleDelete(message.id)}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                  {message.userId === currentUserId && !message.mediaUrl && (
-                    <button
-                      className="ml-2 text-gray-400 hover:text-gray-700"
-                      title="Edit message"
-                      type="button"
-                      aria-label="Edit message"
-                      onClick={() => handleEditStart(message)}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-6 6h6v-6H3v6z"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                  {onReply && (
-                    <button
-                      className="ml-2 text-blue-500 hover:text-blue-700"
-                      title="Reply"
-                      type="button"
-                      aria-label="Reply"
-                      onClick={() => onReply(message)}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 10v4a1 1 0 001 1h3m10-5V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2h6a2 2 0 002-2v-3"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                  {/* Reaction button */}
-                  <button
-                    className="z-[100] ml-2 text-gray-500 hover:text-gray-700"
-                    title="Add Reaction"
-                    type="button"
-                    aria-label="Add Reaction"
-                    onClick={() => setPickerOpenFor(message.id)}
-                  >
-                    {pickerOpenFor === message.id && (
-                      <div>
-                        <ReactionPicker
-                          onSelect={(emoji) =>
-                            handleAddReaction(message.id, emoji)
-                          }
-                        />
-                        <button
-                          className="mt-1 text-xs text-gray-500 hover:text-gray-700"
-                          type="button"
-                          onClick={() => setPickerOpenFor(null)}
-                        >
-                          Close
-                        </button>
-                      </div>
-                    )}
-                  </button>
+                <div className="ml-auto">
+                  <MessageActions
+                    message={message}
+                    currentUserId={currentUserId}
+                    onDelete={handleDelete}
+                    onEditStart={handleEditStart}
+                    onReply={onReply}
+                    handleAddReaction={handleAddReaction}
+                  />
                 </div>
               </div>
             )}

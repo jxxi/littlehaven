@@ -1,18 +1,39 @@
-import EmojiPicker from './EmojiPicker';
+import Picker from 'emoji-picker-react';
+import React, { useEffect, useRef } from 'react';
 
 export function ReactionPicker({
   onSelect,
 }: {
   onSelect: (emoji: string) => void;
 }) {
-  // EmojiPicker expects setMessage, so we intercept it
+  const pickerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        pickerRef.current &&
+        !pickerRef.current.contains(event.target as Node)
+      ) {
+        onSelect(''); // Signal to close picker without selection
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onSelect]);
+
   return (
-    <EmojiPicker
-      message=""
-      setMessage={(emoji) => {
-        if (typeof emoji === 'string') onSelect(emoji);
-        else if (emoji && emoji.emoji) onSelect(emoji.emoji);
-      }}
-    />
+    <div
+      ref={pickerRef}
+      className="absolute z-[100] rounded-lg border bg-white shadow-lg"
+    >
+      <Picker
+        onEmojiClick={(emojiData) => {
+          if (emojiData.emoji) onSelect(emojiData.emoji);
+        }}
+        height={350}
+        width={300}
+        previewConfig={{ showPreview: false }}
+      />
+    </div>
   );
 }
