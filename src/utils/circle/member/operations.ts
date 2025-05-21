@@ -8,6 +8,7 @@ import {
   memberRolesSchema,
 } from '@/models/Schema';
 import type { CircleMember } from '@/types/CircleMember';
+import { getUserInfoFromIds } from '@/utils/clerk/operations';
 
 // Create a new circle member
 export async function createCircleMember(member: CircleMember) {
@@ -77,6 +78,28 @@ export async function getAllMembersForCircle(circleId: string) {
   } catch (error) {
     throw new Error('Failed to fetch members for circle');
   }
+}
+
+export async function getMembersWithUserInfo(circleId: string) {
+  // 1. Get all members for the circle
+  const members = await getAllMembersForCircle(circleId);
+  if (!members.length) return [];
+
+  // 2. Extract userIds
+  const userIds = members.map((m) => m.userId);
+
+  // 3. Get user info for all userIds
+  const userInfoArr = await getUserInfoFromIds(userIds);
+
+  // 4. Build a lookup map for user info
+  const userInfoMap = Object.fromEntries(userInfoArr.map((u) => [u.id, u]));
+
+  // 5. Merge user info into members
+  return members.map((m) => ({
+    ...m,
+    username: userInfoMap[m.userId]?.username ?? null,
+    imageUrl: userInfoMap[m.userId]?.imageUrl ?? null,
+  }));
 }
 
 // Get a specific member by circle ID and user ID

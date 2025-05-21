@@ -8,12 +8,13 @@ export function ChatHeader({
   members,
   messages,
   onMemberClick,
+  onToggleMembers,
 }: {
   members: { userId: string; username: string; imageUrl?: string }[];
   messages: Message[];
   onMemberClick?: (memberId: string) => void;
+  onToggleMembers: () => void;
 }) {
-  const [showMembers, setShowMembers] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -52,7 +53,7 @@ export function ChatHeader({
           type="button"
           className="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
           title="Members"
-          onClick={() => setShowMembers(true)}
+          onClick={onToggleMembers}
         >
           <Users className="size-5" />
         </button>
@@ -87,30 +88,31 @@ export function ChatHeader({
                       <li className="text-gray-400">No members found</li>
                     )}
                     {filteredMembers.map((m) => (
-                      <button
-                        key={m.userId}
-                        type="button"
-                        className="flex w-full items-center gap-2 rounded py-2 hover:bg-gray-100"
-                        onClick={() => {
-                          setShowSearch(false);
-                          onMemberClick?.(m.userId);
-                        }}
-                        aria-label={`View member ${m.username}`}
-                      >
-                        {m.imageUrl ? (
-                          <Image
-                            src={m.imageUrl}
-                            alt={m.username}
-                            width={28}
-                            height={28}
-                            className="size-7 rounded-full"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="size-7 rounded-full bg-gray-200" />
-                        )}
-                        <span className="text-gray-700">{m.username}</span>
-                      </button>
+                      <li key={m.userId}>
+                        <button
+                          type="button"
+                          className="flex w-full items-center gap-2 rounded py-2 hover:bg-gray-100"
+                          onClick={() => {
+                            setShowSearch(false);
+                            onMemberClick?.(m.userId);
+                          }}
+                          aria-label={`View member ${m.username}`}
+                        >
+                          {m.imageUrl ? (
+                            <Image
+                              src={m.imageUrl}
+                              alt={m.username}
+                              width={28}
+                              height={28}
+                              className="size-7 rounded-full"
+                              unoptimized
+                            />
+                          ) : (
+                            <div className="size-7 rounded-full bg-gray-200" />
+                          )}
+                          <span className="text-gray-700">{m.username}</span>
+                        </button>
+                      </li>
                     ))}
                   </ul>
                   <div className="mb-2 mt-4 text-xs font-semibold text-gray-500">
@@ -139,63 +141,6 @@ export function ChatHeader({
             </div>
           </div>
         </div>
-      )}
-      {/* Members Modal */}
-      {showMembers && (
-        <>
-          {/* Overlay for click-away */}
-          <button
-            type="button"
-            className="fixed inset-0 z-40 cursor-default bg-black/20"
-            onClick={() => setShowMembers(false)}
-            aria-label="Close members sidebar"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') setShowMembers(false);
-            }}
-          />
-          <aside className="fixed right-0 top-0 z-50 flex h-full w-80 flex-col border-l bg-white shadow-lg">
-            <div className="flex items-center justify-between border-b px-4 py-3">
-              <div className="text-lg font-bold text-gray-800">Members</div>
-              <button
-                type="button"
-                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                onClick={() => setShowMembers(false)}
-                aria-label="Close members"
-              >
-                <X className="size-5" />
-              </button>
-            </div>
-            <ul className="flex-1 overflow-y-auto p-4">
-              {members.map((m) => (
-                <button
-                  key={m.userId}
-                  type="button"
-                  className="flex w-full items-center gap-2 rounded py-2 hover:bg-gray-100"
-                  onClick={() => {
-                    setShowMembers(false);
-                    onMemberClick?.(m.userId);
-                  }}
-                  aria-label={`View member ${m.username}`}
-                >
-                  {m.imageUrl ? (
-                    <Image
-                      src={m.imageUrl}
-                      alt={m.username}
-                      width={28}
-                      height={28}
-                      className="size-7 rounded-full"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="size-7 rounded-full bg-gray-200" />
-                  )}
-                  <span className="text-gray-700">{m.username}</span>
-                </button>
-              ))}
-            </ul>
-          </aside>
-        </>
       )}
     </div>
   );

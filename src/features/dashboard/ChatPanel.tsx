@@ -1,7 +1,7 @@
 'use client';
 
 import { UserButton } from '@clerk/nextjs';
-import { Image } from 'lucide-react';
+import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
@@ -27,9 +27,10 @@ const ChatPanel = ({
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [showGifPicker, setShowGifPicker] = useState(false);
+  const [showMembers, setShowMembers] = useState(false);
 
   const [members, setMembers] = useState<
-    { id: string; nickname: string; imageUrl?: string }[]
+    { id: string; nickname: string; username: string; imageUrl?: string }[]
   >([]);
   const [replyToMap, setReplyToMap] = useState<Record<string, Message | null>>(
     {},
@@ -84,7 +85,6 @@ const ChatPanel = ({
   }, [currentCircleId, currentChannelId, userId, setLoading]);
 
   useEffect(() => {
-    console.log('currentCircleId', currentCircleId);
     if (!currentCircleId) {
       setMembers([]);
       return;
@@ -273,132 +273,177 @@ const ChatPanel = ({
   };
 
   return (
-    <div className="relative h-full flex-col rounded-md border border-black bg-white p-4 pb-20 shadow-md">
-      <ChatHeader
-        members={members.map((m) => ({
-          userId: m.id,
-          username: m.nickname,
-          imageUrl: m.imageUrl,
-        }))}
-        messages={messages}
-        onMemberClick={() => {
-          /* handle member click */
-        }}
-      />
-      <Messages
-        messages={messages}
-        currentUserId={userId}
-        currentChannelId={currentChannelId}
-        onDelete={(id) =>
-          setMessages((msgs) => msgs.filter((m) => m.id !== id))
-        }
-        onReply={handleSetReplyTo}
-        replyLookup={replyLookup}
-        onEdit={handleEditMessage}
-      />
-      <div className="flex flex-row">
-        <div className="relative flex grow flex-col">
-          {replyTo && (
-            <div className="mb-2 flex items-center rounded border-l-4 border-blue-400 bg-blue-50 px-2 py-1 text-xs text-blue-800">
-              <span className="mr-2 font-semibold">
-                Replying to {replyTo.user?.username || 'user'}:
-              </span>
-              <span className="max-w-xs truncate">{replyTo.content}</span>
+    <div className="relative flex h-full flex-row rounded-md border border-black bg-white p-4 pb-20 shadow-md">
+      <div className="flex flex-1 flex-col transition-all duration-300">
+        <ChatHeader
+          members={members.map((m) => ({
+            userId: m.id,
+            username: m.nickname ?? m.username,
+            imageUrl: m.imageUrl,
+          }))}
+          messages={messages}
+          onMemberClick={() => {
+            /* handle member click */
+          }}
+          onToggleMembers={() => setShowMembers((v) => !v)}
+        />
+        <Messages
+          messages={messages}
+          currentUserId={userId}
+          currentChannelId={currentChannelId}
+          onDelete={(id) =>
+            setMessages((msgs) => msgs.filter((m) => m.id !== id))
+          }
+          onReply={handleSetReplyTo}
+          replyLookup={replyLookup}
+          onEdit={handleEditMessage}
+        />
+        <div className="flex flex-row">
+          <div className="relative flex grow flex-col">
+            {replyTo && (
+              <div className="mb-2 flex items-center rounded border-l-4 border-blue-400 bg-blue-50 px-2 py-1 text-xs text-blue-800">
+                <span className="mr-2 font-semibold">
+                  Replying to {replyTo.user?.username || 'user'}:
+                </span>
+                <span className="max-w-xs truncate">{replyTo.content}</span>
+                <button
+                  className="ml-2 text-gray-400 hover:text-gray-700"
+                  type="button"
+                  aria-label="Cancel reply"
+                  onClick={() => handleSetReplyTo(null)}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-row">
+          <div className="absolute inset-x-0 bottom-0 flex items-center space-x-2 rounded-md bg-gray-200 p-4">
+            <UserButton />
+
+            <input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder={
+                replyTo
+                  ? `Replying to ${replyTo.user?.username || 'user'}...`
+                  : 'Message'
+              }
+              className="w-full rounded-md bg-gray-100 px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSendMessage();
+                }
+              }}
+            />
+
+            <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center space-x-2 text-gray-400">
               <button
-                className="ml-2 text-gray-400 hover:text-gray-700"
                 type="button"
-                aria-label="Cancel reply"
-                onClick={() => handleSetReplyTo(null)}
+                aria-label="Upload Image"
+                className="p-1 hover:text-gray-600"
+                onClick={() => handleFileUpload('image')}
+              >
+                <Image
+                  aria-label="image"
+                  alt="image"
+                  src="/images/icons/image.svg"
+                  width={20}
+                  height={20}
+                />
+              </button>
+              <button
+                type="button"
+                aria-label="Upload Video"
+                className="p-1 hover:text-gray-600"
+                onClick={() => handleFileUpload('video')}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  fill="none"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
+                  fill="none"
                   stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                  <circle cx="12" cy="13" r="3" />
                 </svg>
               </button>
+              <EmojiPicker message={message} setMessage={setMessage} />
+              <button
+                type="button"
+                aria-label="Send GIF"
+                className="p-1 hover:text-gray-600"
+                onClick={() => setShowGifPicker(!showGifPicker)}
+              >
+                <GifIcon size={20} />
+              </button>
             </div>
+          </div>
+          {showGifPicker && (
+            <GifPicker
+              onSelect={handleGifSelect}
+              onClose={() => setShowGifPicker(false)}
+            />
           )}
         </div>
       </div>
-      <div className="flex flex-row">
-        <div className="absolute inset-x-0 bottom-0 flex items-center space-x-2 rounded-md bg-gray-200 p-4">
-          <UserButton />
-
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder={
-              replyTo
-                ? `Replying to ${replyTo.user?.username || 'user'}...`
-                : 'Message'
-            }
-            className="w-full rounded-md bg-gray-100 px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleSendMessage();
-              }
-            }}
-          />
-
-          <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center space-x-2 text-gray-400">
-            <button
-              type="button"
-              aria-label="Upload Image"
-              className="p-1 hover:text-gray-600"
-              onClick={() => handleFileUpload('image')}
-            >
-              <Image aria-label="image" alt-text="image" size={20} />
-            </button>
-            <button
-              type="button"
-              aria-label="Upload Video"
-              className="p-1 hover:text-gray-600"
-              onClick={() => handleFileUpload('video')}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-                <circle cx="12" cy="13" r="3" />
-              </svg>
-            </button>
-            <EmojiPicker message={message} setMessage={setMessage} />
-            <button
-              type="button"
-              aria-label="Send GIF"
-              className="p-1 hover:text-gray-600"
-              onClick={() => setShowGifPicker(!showGifPicker)}
-            >
-              <GifIcon size={20} />
-            </button>
+      {showMembers && (
+        <div className="flex h-full w-80 flex-col border-l bg-white shadow-lg">
+          <div className="flex items-center border-b px-4 py-3">
+            <div className="text-lg font-bold text-gray-800">Members</div>
           </div>
+          <ul className="flex-1 overflow-y-auto p-4">
+            {members.map((m) => (
+              <li key={m.id}>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 rounded py-2 hover:bg-gray-100"
+                  onClick={() => {
+                    setShowMembers(false);
+                    // Optionally call onMemberClick here if you want
+                  }}
+                  aria-label={`View member ${m.nickname}`}
+                >
+                  {m.imageUrl ? (
+                    <Image
+                      src={m.imageUrl}
+                      alt={m.nickname}
+                      width={28}
+                      height={28}
+                      className="size-7 rounded-full"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="size-7 rounded-full bg-gray-200" />
+                  )}
+                  <span className="text-gray-700">{m.nickname}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
-        {showGifPicker && (
-          <GifPicker
-            onSelect={handleGifSelect}
-            onClose={() => setShowGifPicker(false)}
-          />
-        )}
-      </div>
+      )}
     </div>
   );
 };

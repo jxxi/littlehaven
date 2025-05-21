@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 import {
   createCircleMember,
   deleteCircleMember,
-  getAllMembersForCircle,
   getMemberByCircleIdAndUserId,
+  getMembersWithUserInfo,
   updateCircleMember,
 } from '@/utils/circle/member/operations';
 
@@ -67,14 +67,13 @@ export async function GET(request: Request) {
     if (circleId && userId) {
       members = await getMemberByCircleIdAndUserId(circleId, userId);
     } else if (circleId) {
-      members = await getAllMembersForCircle(circleId);
+      members = await getMembersWithUserInfo(circleId);
     } else {
       return NextResponse.json(
         { message: 'Missing required parameters' },
         { status: 400 },
       );
     }
-    console.log(members);
     return NextResponse.json(members);
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 500 });
