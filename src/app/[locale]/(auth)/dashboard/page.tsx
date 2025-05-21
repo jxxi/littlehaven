@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import Loader from '@/components/Loader';
 import type { Circle } from '@/features/circle/types';
 import { UserCircleList } from '@/features/circle/UserCircleList';
-import { MessageBox } from '@/features/dashboard/MessageBox';
+import { ChatPanel } from '@/features/dashboard/ChatPanel';
 
 const DashboardIndexPage = () => {
   const { user } = useUser();
@@ -56,8 +56,6 @@ const DashboardIndexPage = () => {
         }
       } catch (error) {
         //
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -143,7 +141,7 @@ const DashboardIndexPage = () => {
         )}
       </div>
       <div className="grow content-end items-end bg-pink-50 p-4">
-        <MessageBox
+        <ChatPanel
           userId={user?.id ?? ''}
           userName={user?.username ?? ''}
           userImage={user?.imageUrl}

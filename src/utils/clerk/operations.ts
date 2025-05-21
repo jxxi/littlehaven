@@ -14,6 +14,29 @@ export async function updateUserMetadata(id: string, circles: string[]) {
   return NextResponse.json({ success: true });
 }
 
+export async function getUserInfoFromIds(ids: [string]) {
+  try {
+    const client = await clerkClient();
+    const { data } = await client.users.getUserList({
+      userId: ids,
+      orderBy: 'username',
+    });
+
+    const userInfo = data.map((user) => ({
+      id: user.id,
+      username: user.username,
+      imageUrl: user.imageUrl,
+    }));
+
+    return NextResponse.json(userInfo, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to fetch user info' },
+      { status: 500 },
+    );
+  }
+}
+
 export async function getUserList() {
   const client = await clerkClient();
 

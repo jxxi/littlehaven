@@ -50,8 +50,8 @@ const createMediaMessage = async (
     type,
     poster,
   );
-
-  const user = await clerkClient.users.getUser(userId);
+  const client = await clerkClient();
+  const user = await client.users.getUser(userId);
   // After creating the message in DB
   const createdMessage = {
     ...dbMessage,

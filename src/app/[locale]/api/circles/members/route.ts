@@ -58,25 +58,24 @@ export async function DELETE(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    // In App Router, query params would come from the URL rather than body
     const { searchParams } = new URL(request.url);
     const circleId = searchParams.get('circleId');
     const userId = searchParams.get('userId');
 
-    let roles;
+    let members;
 
     if (circleId && userId) {
-      roles = await getMemberByCircleIdAndUserId(circleId, userId);
+      members = await getMemberByCircleIdAndUserId(circleId, userId);
     } else if (circleId) {
-      roles = await getAllMembersForCircle(circleId);
+      members = await getAllMembersForCircle(circleId);
     } else {
       return NextResponse.json(
         { message: 'Missing required parameters' },
         { status: 400 },
       );
     }
-
-    return NextResponse.json(roles);
+    console.log(members);
+    return NextResponse.json(members);
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }

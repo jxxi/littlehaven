@@ -38,7 +38,8 @@ export async function createMessage(
       .returning();
 
     // Get user information
-    const user = await clerkClient.users.getUser(userId);
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
     return {
       ...newMessage,
       user: {
@@ -97,9 +98,10 @@ export async function getAllMessagesForChannel(channelId: string) {
     });
 
     // Get user information for each message
+    const client = await clerkClient();
     const messagesWithUsers = await Promise.all(
       messages.map(async (message) => {
-        const user = await clerkClient.users.getUser(message.userId);
+        const user = await client.users.getUser(message.userId);
         return {
           ...message,
           user: {
@@ -263,9 +265,10 @@ export async function generateThumbnail(
 
 async function getMessagesWithUsers(messages: any[]): Promise<any[]> {
   // Get user information for each message
+  const client = await clerkClient();
   const messagesWithUsers = await Promise.all(
     messages.map(async (message) => {
-      const user = await clerkClient.users.getUser(message.userId);
+      const user = await client.users.getUser(message.userId);
       return {
         ...message,
         user: {

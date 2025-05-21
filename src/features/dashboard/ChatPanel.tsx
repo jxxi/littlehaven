@@ -16,7 +16,7 @@ import { Messages } from './Messages';
 
 const socket = io('http://localhost:3000');
 
-const MessageBox = ({
+const ChatPanel = ({
   userId,
   userName,
   userImage,
@@ -29,7 +29,7 @@ const MessageBox = ({
   const [showGifPicker, setShowGifPicker] = useState(false);
 
   const [members, setMembers] = useState<
-    { id: string; name: string; avatarUrl?: string }[]
+    { id: string; nickname: string; imageUrl?: string }[]
   >([]);
   const [replyToMap, setReplyToMap] = useState<Record<string, Message | null>>(
     {},
@@ -84,6 +84,7 @@ const MessageBox = ({
   }, [currentCircleId, currentChannelId, userId, setLoading]);
 
   useEffect(() => {
+    console.log('currentCircleId', currentCircleId);
     if (!currentCircleId) {
       setMembers([]);
       return;
@@ -274,7 +275,11 @@ const MessageBox = ({
   return (
     <div className="relative h-full flex-col rounded-md border border-black bg-white p-4 pb-20 shadow-md">
       <ChatHeader
-        members={members}
+        members={members.map((m) => ({
+          userId: m.id,
+          username: m.nickname,
+          imageUrl: m.imageUrl,
+        }))}
         messages={messages}
         onMemberClick={() => {
           /* handle member click */
@@ -398,4 +403,4 @@ const MessageBox = ({
   );
 };
 
-export { MessageBox };
+export { ChatPanel };

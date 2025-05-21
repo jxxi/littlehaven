@@ -9,7 +9,7 @@ export function ChatHeader({
   messages,
   onMemberClick,
 }: {
-  members: { id: string; name: string; avatarUrl?: string }[];
+  members: { userId: string; username: string; imageUrl?: string }[];
   messages: Message[];
   onMemberClick?: (memberId: string) => void;
 }) {
@@ -19,7 +19,9 @@ export function ChatHeader({
 
   // Filter logic
   const filteredMembers = search
-    ? members.filter((m) => m.name.toLowerCase().includes(search.toLowerCase()))
+    ? members.filter((m) =>
+        m.username.toLowerCase().includes(search.toLowerCase()),
+      )
     : [];
   const filteredMessages = search
     ? messages.filter(
@@ -86,19 +88,19 @@ export function ChatHeader({
                     )}
                     {filteredMembers.map((m) => (
                       <button
-                        key={m.id}
+                        key={m.userId}
                         type="button"
                         className="flex w-full items-center gap-2 rounded py-2 hover:bg-gray-100"
                         onClick={() => {
                           setShowSearch(false);
-                          onMemberClick?.(m.id);
+                          onMemberClick?.(m.userId);
                         }}
-                        aria-label={`View member ${m.name}`}
+                        aria-label={`View member ${m.username}`}
                       >
-                        {m.avatarUrl ? (
+                        {m.imageUrl ? (
                           <Image
-                            src={m.avatarUrl}
-                            alt={m.name}
+                            src={m.imageUrl}
+                            alt={m.username}
                             width={28}
                             height={28}
                             className="size-7 rounded-full"
@@ -107,7 +109,7 @@ export function ChatHeader({
                         ) : (
                           <div className="size-7 rounded-full bg-gray-200" />
                         )}
-                        <span className="text-gray-700">{m.name}</span>
+                        <span className="text-gray-700">{m.username}</span>
                       </button>
                     ))}
                   </ul>
@@ -167,19 +169,19 @@ export function ChatHeader({
             <ul className="flex-1 overflow-y-auto p-4">
               {members.map((m) => (
                 <button
-                  key={m.id}
+                  key={m.userId}
                   type="button"
                   className="flex w-full items-center gap-2 rounded py-2 hover:bg-gray-100"
                   onClick={() => {
                     setShowMembers(false);
-                    onMemberClick?.(m.id);
+                    onMemberClick?.(m.userId);
                   }}
-                  aria-label={`View member ${m.name}`}
+                  aria-label={`View member ${m.username}`}
                 >
-                  {m.avatarUrl ? (
+                  {m.imageUrl ? (
                     <Image
-                      src={m.avatarUrl}
-                      alt={m.name}
+                      src={m.imageUrl}
+                      alt={m.username}
                       width={28}
                       height={28}
                       className="size-7 rounded-full"
@@ -188,7 +190,7 @@ export function ChatHeader({
                   ) : (
                     <div className="size-7 rounded-full bg-gray-200" />
                   )}
-                  <span className="text-gray-700">{m.name}</span>
+                  <span className="text-gray-700">{m.username}</span>
                 </button>
               ))}
             </ul>
