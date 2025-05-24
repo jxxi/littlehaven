@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/jxxi/circles/compare/v1.8.0...v1.8.1) (2025-05-21)
+
+
+### Bug Fixes
+
+*  enhance member fetching in Chat components ([db50cb5](https://github.com/jxxi/circles/commit/db50cb576913e8ce7e98ec316fb61fa20ce70285))
+
 # [1.8.0](https://github.com/jxxi/circles/compare/v1.7.1...v1.8.0) (2025-05-20)
 
 
