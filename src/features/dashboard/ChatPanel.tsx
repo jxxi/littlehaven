@@ -161,57 +161,6 @@ const ChatPanel = ({
     }
   };
 
-  const handleFileUpload = async (type: 'image' | 'video') => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = type === 'image' ? 'image/*' : 'video/*';
-
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-
-      try {
-        // Create FormData
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('type', type);
-
-        // Upload file
-        const response = await fetch('/api/messages', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) throw new Error('Upload failed');
-
-        const { url, poster } = await response.json();
-
-        const newMessage: CreateMessage = {
-          circleId: currentCircleId,
-          channelId: currentChannelId,
-          userId,
-          content: message,
-          mediaUrl: url,
-          mediaType: type,
-          thumbnailUrl: poster,
-          isTts: false,
-        };
-
-        const messageResponse = await fetch('/api/messages', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newMessage),
-        });
-
-        if (!messageResponse.ok) throw new Error('Message Upload failed');
-      } catch (error) {
-        // TODO: Show error notification to user
-      }
-    };
-
-    input.click();
-  };
-
   const handleGifSelect = async (gif: { url: string; preview: string }) => {
     try {
       const newMessage: CreateMessage = {
@@ -354,41 +303,6 @@ const ChatPanel = ({
             />
 
             <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center space-x-2 text-gray-400">
-              <button
-                type="button"
-                aria-label="Upload Image"
-                className="p-1 hover:text-gray-600"
-                onClick={() => handleFileUpload('image')}
-              >
-                <Image
-                  aria-label="image"
-                  alt="image"
-                  src="/images/icons/image.svg"
-                  width={20}
-                  height={20}
-                />
-              </button>
-              <button
-                type="button"
-                aria-label="Upload Video"
-                className="p-1 hover:text-gray-600"
-                onClick={() => handleFileUpload('video')}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-                  <circle cx="12" cy="13" r="3" />
-                </svg>
-              </button>
               <EmojiPicker message={message} setMessage={setMessage} />
               <button
                 type="button"

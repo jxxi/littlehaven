@@ -38,9 +38,9 @@ const GifPicker = ({ onSelect, onClose }: GifPickerProps) => {
   return (
     <div
       ref={pickerRef}
-      className="absolute bottom-12 right-0 z-50 w-96 rounded-md bg-gray-800 p-3 shadow-lg"
+      className="absolute bottom-12 right-0 z-50 w-96 rounded-md bg-gray-300 p-3 shadow-lg"
     >
-      <div className="mb-3 flex items-center rounded-md bg-gray-700 p-2">
+      <div className="mb-3 flex items-center rounded-md bg-gray-200 p-2">
         <Search className="mr-2 size-5 text-gray-400" />
         <input
           type="text"

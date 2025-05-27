@@ -69,18 +69,20 @@ const UserCircleList: React.FC<UserCircleListProps> = ({
           >
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger>
-                  <Image
-                    key={circle.circleId}
-                    src={
-                      circle.iconUrl ||
-                      '/assets/images/default-circle-icon-removebg.png'
-                    }
-                    alt=""
-                    width={50}
-                    height={50}
-                    className="mr-2"
-                  />
+                <TooltipTrigger asChild>
+                  <span>
+                    <Image
+                      key={circle.circleId}
+                      src={
+                        circle.iconUrl ||
+                        '/assets/images/default-circle-icon-removebg.png'
+                      }
+                      alt=""
+                      width={50}
+                      height={50}
+                      className="mr-2"
+                    />
+                  </span>
                 </TooltipTrigger>
                 <TooltipContent className="z-[100] bg-gray-700 text-white">
                   <p className="font-bold">{circle.name}</p>

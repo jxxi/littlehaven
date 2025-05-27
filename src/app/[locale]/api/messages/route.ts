@@ -1,67 +1,10 @@
-import { clerkClient } from '@clerk/nextjs/server';
-import { put } from '@vercel/blob';
-import { nanoid } from 'nanoid';
 import { type NextRequest, NextResponse } from 'next/server';
 
 import {
   createMessage,
-  generateThumbnail,
   getAllMessagesWithReactionsForChannel,
   updateMessage,
 } from '@/utils/message/operations';
-
-const createMediaMessage = async (
-  circleId: string,
-  channelId: string,
-  userId: string,
-  content: string,
-  data: FormData,
-) => {
-  const file = data.get('file') as File;
-  const type = data.get('type') as string;
-
-  if (!file || !type) {
-    return NextResponse.json(
-      { error: 'Missing file or type' },
-      { status: 400 },
-    );
-  }
-  // Generate unique filename
-  const ext = file.name.split('.').pop();
-  const filename = `${nanoid()}.${ext}`;
-  const pathname = `uploads/${type}s/${filename}`;
-
-  // Upload to blob storage
-  const blob = await put(pathname, file, {
-    access: 'public',
-  });
-
-  // For videos, generate thumbnail
-  let poster;
-  if (type === 'video') {
-    poster = await generateThumbnail(blob.url);
-  }
-  const dbMessage = await createMessage(
-    circleId,
-    channelId,
-    userId,
-    content,
-    pathname,
-    type,
-    poster,
-  );
-  const client = await clerkClient();
-  const user = await client.users.getUser(userId);
-  // After creating the message in DB
-  const createdMessage = {
-    ...dbMessage,
-    user: {
-      username: user.username,
-      imageUrl: user.imageUrl,
-    },
-  };
-  return NextResponse.json(createdMessage);
-};
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -114,21 +57,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let message;
-    const contentType = request.headers.get('content-type');
-    const isMediaUpload = contentType?.includes('multipart/form-data');
-    if (isMediaUpload) {
-      const formData = await request.formData();
-      message = createMediaMessage(
-        circleId,
-        channelId,
-        userId,
-        content,
-        formData,
-      );
-    } else {
-      message = await createMessage(circleId, channelId, userId, content);
-    }
+    const message = await createMessage(circleId, channelId, userId, content);
 
     return NextResponse.json(message);
   } catch (error) {
@@ -152,14 +81,6 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 },
-      );
-    }
-    const contentType = request.headers.get('content-type');
-    const isMediaUpload = contentType?.includes('multipart/form-data');
-    if (isMediaUpload) {
-      return NextResponse.json(
-        { error: 'Failed to edit message' },
-        { status: 500 },
       );
     }
     const updates = { content, isPinned, editedAt: new Date() };

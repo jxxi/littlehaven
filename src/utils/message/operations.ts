@@ -1,6 +1,4 @@
 import { clerkClient } from '@clerk/nextjs/server';
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { asc, desc, eq, gt, lt } from 'drizzle-orm';
 
 import { db } from '@/libs/DB';
@@ -207,59 +205,6 @@ export async function getAllReactionsForMessage(messageId: string) {
     return reactions;
   } catch (error) {
     throw new Error('Failed to fetch reactions for message');
-  }
-}
-
-export async function generateThumbnail(
-  videoUrl: string,
-): Promise<string | undefined> {
-  try {
-    // Create FFmpeg instance
-    const ffmpeg = new FFmpeg();
-
-    // Load FFmpeg
-    await ffmpeg.load({
-      coreURL: await toBlobURL('/ffmpeg-core.js', 'text/javascript'),
-      wasmURL: await toBlobURL('/ffmpeg-core.wasm', 'application/wasm'),
-    });
-
-    // Fetch video file
-    const videoData = await fetchFile(videoUrl);
-    await ffmpeg.writeFile('input.mp4', videoData);
-
-    // Extract frame at 1 second mark
-    await ffmpeg.exec([
-      '-i',
-      'input.mp4',
-      '-ss',
-      '00:00:01.000',
-      '-frames:v',
-      '1',
-      '-c:v',
-      'png',
-      'thumbnail.png',
-    ]);
-
-    // Read the thumbnail
-    const thumbnailData = await ffmpeg.readFile('thumbnail.png');
-    const thumbnailBlob = new Blob([thumbnailData], { type: 'image/png' });
-
-    // Upload thumbnail to blob storage
-    const formData = new FormData();
-    formData.append('file', thumbnailBlob, 'thumbnail.png');
-    formData.append('type', 'thumbnail');
-
-    const response = await fetch('/api/messages', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) throw new Error('Thumbnail upload failed');
-    const { url } = await response.json();
-
-    return url;
-  } catch (error) {
-    return undefined;
   }
 }
 
