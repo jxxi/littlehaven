@@ -1,7 +1,6 @@
 'use client';
 
 import { UserButton } from '@clerk/nextjs';
-import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
@@ -12,7 +11,9 @@ import type { CreateMessage, Message } from '../../types/message';
 import { ChatHeader } from './ChatHeader';
 import EmojiPicker from './EmojiPicker';
 import { GifPicker } from './GifPicker';
+import { MembersSidebar } from './MembersSidebar';
 import { Messages } from './Messages';
+import { SearchSidebar } from './SearchSidebar';
 
 const socket = io('http://localhost:3000');
 
@@ -27,7 +28,7 @@ const ChatPanel = ({
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [showGifPicker, setShowGifPicker] = useState(false);
-  const [showMembers, setShowMembers] = useState(false);
+  const [openPanel, setOpenPanel] = useState<'members' | 'search' | null>(null);
 
   const [members, setMembers] = useState<
     { id: string; nickname: string; username: string; imageUrl?: string }[]
@@ -225,16 +226,12 @@ const ChatPanel = ({
     <div className="relative flex h-full flex-row rounded-md border border-black bg-white p-4 pb-20 shadow-md">
       <div className="flex flex-1 flex-col transition-all duration-300">
         <ChatHeader
-          members={members.map((m) => ({
-            userId: m.id,
-            username: m.nickname ?? m.username,
-            imageUrl: m.imageUrl,
-          }))}
-          messages={messages}
-          onMemberClick={() => {
-            /* handle member click */
-          }}
-          onToggleMembers={() => setShowMembers((v) => !v)}
+          onToggleMembers={() =>
+            setOpenPanel(openPanel === 'members' ? null : 'members')
+          }
+          onToggleSearch={() =>
+            setOpenPanel(openPanel === 'search' ? null : 'search')
+          }
         />
         <Messages
           messages={messages}
@@ -322,40 +319,23 @@ const ChatPanel = ({
           )}
         </div>
       </div>
-      {showMembers && (
-        <div className="flex h-full w-80 flex-col border-l bg-white shadow-lg">
-          <div className="flex items-center border-b px-4 py-3">
-            <div className="text-lg font-bold text-gray-800">Members</div>
-          </div>
-          <ul className="flex-1 overflow-y-auto p-4">
-            {members.map((m) => (
-              <li key={m.id}>
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2 rounded py-2 hover:bg-gray-100"
-                  onClick={() => {
-                    setShowMembers(false);
-                    // Optionally call onMemberClick here if you want
-                  }}
-                  aria-label={`View member ${m.nickname}`}
-                >
-                  {m.imageUrl ? (
-                    <Image
-                      src={m.imageUrl}
-                      alt={m.nickname}
-                      width={28}
-                      height={28}
-                      className="size-7 rounded-full"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="size-7 rounded-full bg-gray-200" />
-                  )}
-                  <span className="text-gray-700">{m.nickname}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+      {openPanel === 'members' && (
+        <MembersSidebar members={members} onClose={() => setOpenPanel(null)} />
+      )}
+      {openPanel === 'search' && (
+        <div className="z-10 flex h-full w-80 flex-col border-l bg-white shadow-lg">
+          <SearchSidebar
+            members={members.map((m) => ({
+              userId: m.id,
+              username: m.nickname ?? m.username,
+              imageUrl: m.imageUrl,
+            }))}
+            messages={messages}
+            onMemberClick={() => {
+              /* handle member click */
+            }}
+            onClose={() => setOpenPanel(null)}
+          />
         </div>
       )}
     </div>
