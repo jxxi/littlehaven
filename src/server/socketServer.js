@@ -13,7 +13,7 @@ const server = http.createServer(app);
 // Configure CORS
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3001',
+    origin: 'http://localhost:3000',
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -53,7 +53,7 @@ io.on('connection', (socket) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   // console.log(`Socket.IO server running on port ${PORT}`);
 });

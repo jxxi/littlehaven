@@ -4,6 +4,7 @@
   "scripts": {
     "dev:spotlight": "spotlight-sidecar",
     "dev:next": "next dev",
+    "dev:socket": "node src/server/socketServer.js",
     "dev": "run-p dev:*",
     "build": "next build",
     "start": "next start",

@@ -23,6 +23,7 @@ const DashboardIndexPage = () => {
       if (!user) return;
 
       try {
+        setLoading(true);
         const response = await fetch(`/api/circles?userId=${user.id}`);
         if (!response.ok) throw new Error('Failed to fetch circles');
 
@@ -53,9 +54,13 @@ const DashboardIndexPage = () => {
           if (circlesWithChannels[0].channels?.length > 0) {
             setActiveChannelId(circlesWithChannels[0].channels[0].channelId);
           }
+        } else {
+          setCircles([]);
         }
       } catch (error) {
-        //
+        setCircles([]);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -95,6 +100,15 @@ const DashboardIndexPage = () => {
 
   const handleCircleClick = (circleId: string) => {
     setActiveCircleId(circleId);
+
+    // Find the circle and select its first channel
+    const selectedCircle = circles.find(
+      (circle) => circle.circleId === circleId,
+    );
+    if (selectedCircle?.channels && selectedCircle.channels.length > 0) {
+      setActiveChannelId(selectedCircle.channels[0]?.channelId);
+    }
+
     setUnreadCircles((prev) => {
       const next = new Set(prev);
       next.delete(circleId);
@@ -123,32 +137,37 @@ const DashboardIndexPage = () => {
   };
 
   return (
-    <div className="flex h-full flex-row">
-      {loading && <Loader />}
-      <div className="grow-0 border border-black bg-white">
-        {circles.length > 0 ? (
-          <UserCircleList
-            circles={circles}
+    <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 p-6">
+      <div className="flex h-[96vh] w-[98vw] max-w-[1800px] overflow-hidden rounded-2xl bg-white/80 shadow-2xl">
+        {/* Sidebar */}
+        <div className="flex h-full w-72 flex-col border-r border-gray-200 bg-white/90 p-6">
+          {loading && <Loader />}
+          {circles.length > 0 ? (
+            <UserCircleList
+              circles={circles}
+              currentCircleId={activeCircleId}
+              currentChannelId={activeChannelId}
+              unreadCircles={unreadCircles}
+              unreadChannels={unreadChannels}
+              handleCircleClick={handleCircleClick}
+              handleChannelClick={handleChannelClick}
+            />
+          ) : (
+            <div className="p-4 text-center text-gray-400">
+              No circles available
+            </div>
+          )}
+        </div>
+        {/* Chat Panel */}
+        <div className="flex h-full flex-1 flex-col bg-white/70 p-8">
+          <ChatPanel
+            userId={user?.id ?? ''}
+            userName={user?.username ?? ''}
+            userImage={user?.imageUrl}
             currentCircleId={activeCircleId}
             currentChannelId={activeChannelId}
-            unreadCircles={unreadCircles}
-            unreadChannels={unreadChannels}
-            handleCircleClick={handleCircleClick}
-            handleChannelClick={handleChannelClick}
           />
-        ) : (
-          <div className="p-4 text-center">No circles available</div>
-        )}
-      </div>
-      <div className="grow content-end items-end bg-pink-50 p-4">
-        <ChatPanel
-          userId={user?.id ?? ''}
-          userName={user?.username ?? ''}
-          userImage={user?.imageUrl}
-          currentCircleId={activeCircleId}
-          currentChannelId={activeChannelId}
-          setLoading={setLoading}
-        />
+        </div>
       </div>
     </div>
   );

@@ -41,6 +41,24 @@ const config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        community: {
+          purple: '#6366f1',
+        },
+        support: {
+          blue: '#06b6d4',
+        },
+        growth: {
+          green: '#1bb981',
+        },
+        warmth: {
+          orange: '#f59e0b',
+        },
+        care: {
+          pink: '#ec4899',
+        },
+        calm: {
+          lavender: '#8b5cf6',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -60,6 +78,9 @@ const config = {
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+      },
+      fontFamily: {
+        hand: ['"Edu NSW ACT Hand"', 'cursive'],
       },
     },
   },

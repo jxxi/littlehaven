@@ -10,7 +10,7 @@ import { formatDate } from '@/utils/Helpers';
 import type { Message } from '../../types/message';
 import { MessageActions } from './MessageActions';
 
-const socket = io('http://localhost:3000'); // or wherever your server runs
+const socket = io('http://localhost:3001'); // or wherever your server runs
 
 const PAGE_SIZE = 50;
 
@@ -21,7 +21,7 @@ const Messages = (props: {
   onReply?: (msg: Message) => void;
   replyLookup?: Map<string, Message>;
   onEdit?: (msg: Message, newContent: string) => Promise<void>;
-  currentChannelId: string;
+  currentChannelId?: string;
 }) => {
   const {
     messages,
@@ -87,12 +87,14 @@ const Messages = (props: {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messageId, userId: currentUserId, emoji }),
     });
-    socket.emit('addReaction', {
-      messageId,
-      emoji,
-      userId: currentUserId,
-      channelId: currentChannelId,
-    });
+    if (currentChannelId) {
+      socket.emit('addReaction', {
+        messageId,
+        emoji,
+        userId: currentUserId,
+        channelId: currentChannelId,
+      });
+    }
     setReactions((prev) => {
       const msgReactions = prev[messageId] || [];
       const existing = msgReactions.find((r) => r.emoji === emoji);
@@ -112,12 +114,14 @@ const Messages = (props: {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messageId, userId: currentUserId, emoji }),
     });
-    socket.emit('removeReaction', {
-      messageId,
-      emoji,
-      userId: currentUserId,
-      channelId: currentChannelId,
-    });
+    if (currentChannelId) {
+      socket.emit('removeReaction', {
+        messageId,
+        emoji,
+        userId: currentUserId,
+        channelId: currentChannelId,
+      });
+    }
     setReactions((prev) => {
       const msgReactions = prev[messageId] || [];
       const idx = msgReactions.findIndex((r) => r.emoji === emoji);
@@ -207,10 +211,12 @@ const Messages = (props: {
 
       if (response.ok) {
         setAllMessages((prev) => prev.filter((msg) => msg.id !== id));
-        socket.emit('deleteMessage', {
-          messageId: id,
-          channelId: currentChannelId,
-        });
+        if (currentChannelId) {
+          socket.emit('deleteMessage', {
+            messageId: id,
+            channelId: currentChannelId,
+          });
+        }
         if (onDelete) onDelete(id);
       }
     } catch (error) {

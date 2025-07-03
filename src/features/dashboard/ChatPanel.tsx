@@ -15,7 +15,7 @@ import { MembersSidebar } from './MembersSidebar';
 import { Messages } from './Messages';
 import { SearchSidebar } from './SearchSidebar';
 
-const socket = io('http://localhost:3000');
+const socket = io('http://localhost:3001');
 
 const ChatPanel = ({
   userId,
@@ -24,6 +24,13 @@ const ChatPanel = ({
   currentCircleId,
   currentChannelId,
   setLoading,
+}: {
+  userId: string;
+  userName: string;
+  userImage?: string;
+  currentCircleId?: string;
+  currentChannelId?: string;
+  setLoading?: (loading: boolean) => void;
 }) => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -46,21 +53,27 @@ const ChatPanel = ({
       socket.emit('joinChannel', currentChannelId);
     }
 
-    socket.on('receiveMessage', (newMessage) => {
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-    });
+    const handleReceiveMessage = (newMessage) => {
+      // Only add message if it belongs to the current channel
+      if (newMessage.channelId === currentChannelId) {
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
+      }
+    };
+
+    socket.on('receiveMessage', handleReceiveMessage);
 
     return () => {
       if (currentChannelId) {
         socket.emit('leaveChannel', currentChannelId);
       }
-      socket.off('receiveMessage');
+      socket.off('receiveMessage', handleReceiveMessage);
     };
   }, [currentChannelId]);
 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
+        setLoading?.(true);
         if (!currentCircleId || !currentChannelId) return;
         setMessages([]); // Clear messages before fetching new ones
         const response = await fetch(
@@ -78,7 +91,7 @@ const ChatPanel = ({
       } catch (error) {
         // TODO: Show error notification to user
       } finally {
-        setLoading(false); // Set loading to false after fetching messages
+        setLoading?.(false); // Set loading to false after fetching messages
       }
     };
 
@@ -111,8 +124,8 @@ const ChatPanel = ({
 
     const tempId = uuidv4();
     const tempMessage = {
-      circleId: currentCircleId,
-      channelId: currentChannelId,
+      circleId: currentCircleId!,
+      channelId: currentChannelId!,
       userId,
       content: message,
       isTts: false,
@@ -151,7 +164,7 @@ const ChatPanel = ({
       socket.emit('messageCreated', {
         tempId,
         dbMessage,
-        channelId: currentChannelId,
+        channelId: currentChannelId!,
       });
 
       setMessage('');
@@ -164,6 +177,8 @@ const ChatPanel = ({
 
   const handleGifSelect = async (gif: { url: string; preview: string }) => {
     try {
+      if (!currentCircleId || !currentChannelId) return;
+
       const newMessage: CreateMessage = {
         circleId: currentCircleId,
         channelId: currentChannelId,
@@ -193,7 +208,7 @@ const ChatPanel = ({
 
   const handleSetReplyTo = (msg: Message | null) => {
     if (!currentChannelId) return;
-    setReplyToMap((prev) => ({ ...prev, [currentChannelId]: msg }));
+    setReplyToMap((prev) => ({ ...prev, [currentChannelId!]: msg }));
   };
 
   const handleEditMessage = async (msg: Message, newContent: string) => {
