@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/jxxi/circles/compare/v1.8.1...v1.9.0) (2025-07-03)
+
+
+### Features
+
+* add new SVG assets, update Tailwind config, and enhance dashboard layout ([392aa35](https://github.com/jxxi/circles/commit/392aa355c6d9ae8e11d8100c17bc9aee4a30c816))
+
 ## [1.8.1](https://github.com/jxxi/circles/compare/v1.8.0...v1.8.1) (2025-05-21)
 
 
