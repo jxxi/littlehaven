@@ -59,6 +59,10 @@ const config = {
         calm: {
           lavender: '#8b5cf6',
         },
+        cream: {
+          DEFAULT: '#FDF6ED',
+          light: '#FFF7EB',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -80,7 +84,7 @@ const config = {
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
       fontFamily: {
-        hand: ['"Edu NSW ACT Hand"', 'cursive'],
+        hand: ['"Edu NSW ACT Hand Cursive"', 'cursive'],
       },
     },
   },

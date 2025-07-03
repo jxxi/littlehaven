@@ -50,8 +50,8 @@ const UserCircleList: React.FC<UserCircleListProps> = ({
   }
 
   return (
-    <div className="flex h-full rounded-md bg-white shadow-md">
-      <div className="w-1/3 rounded-md bg-gray-200 p-3">
+    <div className="flex h-full rounded-md border-2 border-warmth-orange bg-white shadow-md">
+      <div className="w-1/3 rounded-md bg-white p-3">
         {circles.map((circle, index) => (
           <Button
             key={circle.circleId}
@@ -73,14 +73,11 @@ const UserCircleList: React.FC<UserCircleListProps> = ({
                   <span>
                     <Image
                       key={circle.circleId}
-                      src={
-                        circle.iconUrl ||
-                        '/assets/images/default-circle-icon-removebg.png'
-                      }
+                      src={circle.iconUrl || '/lettermark.svg'}
                       alt=""
                       width={50}
                       height={50}
-                      className="mr-2"
+                      className="mr-2 opacity-80"
                     />
                   </span>
                 </TooltipTrigger>
@@ -93,14 +90,14 @@ const UserCircleList: React.FC<UserCircleListProps> = ({
           </Button>
         ))}
       </div>
-      <div className="w-2/3 rounded-md bg-gray-100 p-3">
+      <div className="w-2/3 rounded-md bg-gray-50 p-3">
         {selectedIndex !== null && circles[selectedIndex] && (
           <div className="flex flex-col">
             {circles[selectedIndex].channels.map((channel) => (
               <Button
                 key={channel.channelId}
                 className={`
-                  mb-1 w-full rounded-md bg-white  px-3 py-2 text-left text-muted-foreground transition-colors hover:bg-blue-200
+                  mb-1 w-full rounded-md bg-white px-3 py-2 text-left text-muted-foreground transition-colors hover:bg-blue-200
                   ${unreadChannels.has(channel.channelId) ? 'font-bold text-black' : ''}
                   ${currentChannel === channel.channelId ? 'bg-blue-100 text-black ' : ''}
                 `}

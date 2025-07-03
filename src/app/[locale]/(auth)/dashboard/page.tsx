@@ -4,7 +4,7 @@ import { useUser } from '@clerk/nextjs';
 import Pusher from 'pusher-js';
 import { useEffect, useState } from 'react';
 
-import Loader from '@/components/Loader';
+import BrandLoader from '@/components/BrandLoader';
 import type { Circle } from '@/features/circle/types';
 import { UserCircleList } from '@/features/circle/UserCircleList';
 import { ChatPanel } from '@/features/dashboard/ChatPanel';
@@ -138,10 +138,10 @@ const DashboardIndexPage = () => {
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 p-6">
-      <div className="flex h-[96vh] w-[98vw] max-w-[1800px] overflow-hidden rounded-2xl bg-white/80 shadow-2xl">
+      <div className="flex h-[96vh] w-[98vw] max-w-[1800px] overflow-hidden rounded-2xl bg-cream shadow-2xl">
         {/* Sidebar */}
-        <div className="flex h-full w-72 flex-col border-r border-gray-200 bg-white/90 p-6">
-          {loading && <Loader />}
+        <div className="flex h-full w-72 flex-col border-r border-warmth-orange bg-cream p-6">
+          {loading && <BrandLoader />}
           {circles.length > 0 ? (
             <UserCircleList
               circles={circles}

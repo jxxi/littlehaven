@@ -4,7 +4,7 @@ export function MembersSidebar({ members, onClose }) {
   return (
     <div className="z-10 flex h-full w-80 flex-col border-l bg-white shadow-lg">
       <div className="flex items-center border-b px-4 py-3">
-        <div className="text-lg font-bold text-gray-800">Members</div>
+        <h2 className="text-gray-700">Members</h2>
       </div>
       <ul className="flex-1 overflow-y-auto p-4">
         {members.map((m) => (

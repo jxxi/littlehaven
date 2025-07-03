@@ -23,7 +23,7 @@ export function SearchSidebar({ members, messages, onMemberClick, onClose }) {
         <input
           type="text"
           placeholder="Search messages or users..."
-          className="w-full rounded border px-3 py-2 text-gray-800 focus:outline-none focus:ring"
+          className="w-full rounded border px-3 py-2 text-gray-800 caret-transparent focus:outline-none focus:ring"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />

@@ -1,6 +1,7 @@
 'use client';
 
 import { UserButton } from '@clerk/nextjs';
+import Image from 'next/image';
 import Link from 'next/link';
 
 import { ActiveLink } from '@/components/ActiveLink';
@@ -11,7 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Logo } from '@/templates/Logo';
 
 const DashboardHeader = (props: {
   menu: {
@@ -20,10 +20,22 @@ const DashboardHeader = (props: {
   }[];
 }) => {
   return (
-    <>
+    <div className="flex w-full items-center justify-between">
       <div className="flex items-center">
-        <Link href="/dashboard" className="max-sm:hidden">
-          <Logo />
+        <Link
+          href="/dashboard"
+          className="group flex items-center gap-2 max-sm:hidden"
+        >
+          <Image
+            src="/logo.svg"
+            alt="Little Haven Logo"
+            width={36}
+            height={36}
+            priority
+          />
+          <span className="font-hand text-2xl text-community-purple transition">
+            Little Haven
+          </span>
         </Link>
 
         <svg
@@ -49,44 +61,39 @@ const DashboardHeader = (props: {
         </nav>
       </div>
 
-      <div>
-        <ul className="flex items-center gap-x-1 [&_li:not(:last-child):hover]:opacity-100 [&_li:not(:last-child)]:opacity-60">
-          <li>
-            <div className="lg:hidden">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <ToggleMenuButton />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  {props.menu.map((item) => (
-                    <DropdownMenuItem key={item.href} asChild>
-                      <Link href={item.href}>{item.label}</Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </li>
+      <div className="ml-auto flex items-center gap-x-1">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <ToggleMenuButton />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {props.menu.map((item) => (
+              <DropdownMenuItem key={item.href} asChild>
+                <Link href={item.href}>{item.label}</Link>
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/circle-profile">Settings</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-          {/* <li>
-            <LocaleSwitcher />
-          </li> */}
+        {/* <li>
+          <LocaleSwitcher />
+        </li> */}
 
-          <li>
-            <UserButton
-              userProfileMode="navigation"
-              userProfileUrl="/dashboard/user-profile"
-              afterSignOutUrl="/"
-              appearance={{
-                elements: {
-                  rootBox: 'px-2 py-1.5',
-                },
-              }}
-            />
-          </li>
-        </ul>
+        <UserButton
+          userProfileMode="navigation"
+          userProfileUrl="/dashboard/user-profile"
+          afterSignOutUrl="/"
+          appearance={{
+            elements: {
+              rootBox: 'px-2 py-1.5',
+            },
+          }}
+        />
       </div>
-    </>
+    </div>
   );
 };
 

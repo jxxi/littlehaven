@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
 
+import BrandLoader from '@/components/BrandLoader';
 import { GifIcon } from '@/components/icons/GifIcon';
 
 import type { CreateMessage, Message } from '../../types/message';
@@ -23,7 +24,7 @@ const ChatPanel = ({
   userImage,
   currentCircleId,
   currentChannelId,
-  setLoading,
+  setLoading: _setLoadingProp,
 }: {
   userId: string;
   userName: string;
@@ -36,6 +37,7 @@ const ChatPanel = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [openPanel, setOpenPanel] = useState<'members' | 'search' | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const [members, setMembers] = useState<
     { id: string; nickname: string; username: string; imageUrl?: string }[]
@@ -73,7 +75,8 @@ const ChatPanel = ({
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        setLoading?.(true);
+        setLoading(true);
+        _setLoadingProp?.(true);
         if (!currentCircleId || !currentChannelId) return;
         setMessages([]); // Clear messages before fetching new ones
         const response = await fetch(
@@ -81,7 +84,6 @@ const ChatPanel = ({
         );
         if (!response.ok) throw new Error('Failed to fetch messages');
         const circleMessages = await response.json();
-        //
         setMessages(
           circleMessages.map((msg) => ({
             ...msg,
@@ -91,12 +93,12 @@ const ChatPanel = ({
       } catch (error) {
         // TODO: Show error notification to user
       } finally {
-        setLoading?.(false); // Set loading to false after fetching messages
+        setLoading(false);
+        _setLoadingProp?.(false);
       }
     };
-
     fetchMessages();
-  }, [currentCircleId, currentChannelId, userId, setLoading]);
+  }, [currentCircleId, currentChannelId, userId, _setLoadingProp]);
 
   useEffect(() => {
     if (!currentCircleId) {
@@ -238,7 +240,7 @@ const ChatPanel = ({
   };
 
   return (
-    <div className="relative flex h-full flex-row rounded-md border border-black bg-white p-4 pb-20 shadow-md">
+    <div className="relative flex h-full flex-row rounded-md border-2 border-growth-green bg-cream p-4 pb-20 shadow-md">
       <div className="flex flex-1 flex-col transition-all duration-300">
         <ChatHeader
           onToggleMembers={() =>
@@ -248,17 +250,23 @@ const ChatPanel = ({
             setOpenPanel(openPanel === 'search' ? null : 'search')
           }
         />
-        <Messages
-          messages={messages}
-          currentUserId={userId}
-          currentChannelId={currentChannelId}
-          onDelete={(id) =>
-            setMessages((msgs) => msgs.filter((m) => m.id !== id))
-          }
-          onReply={handleSetReplyTo}
-          replyLookup={replyLookup}
-          onEdit={handleEditMessage}
-        />
+        {loading ? (
+          <div className="flex flex-1 items-center justify-center">
+            <BrandLoader />
+          </div>
+        ) : (
+          <Messages
+            messages={messages}
+            currentUserId={userId}
+            currentChannelId={currentChannelId}
+            onDelete={(id) =>
+              setMessages((msgs) => msgs.filter((m) => m.id !== id))
+            }
+            onReply={handleSetReplyTo}
+            replyLookup={replyLookup}
+            onEdit={handleEditMessage}
+          />
+        )}
         <div className="flex flex-row">
           <div className="relative flex grow flex-col">
             {replyTo && (
@@ -294,7 +302,7 @@ const ChatPanel = ({
           </div>
         </div>
         <div className="flex flex-row">
-          <div className="absolute inset-x-0 bottom-0 flex items-center space-x-2 rounded-md bg-gray-200 p-4">
+          <div className="absolute inset-x-0 bottom-0 flex items-center space-x-2 rounded-md border-t-2 border-growth-green bg-white p-4">
             <UserButton />
 
             <input

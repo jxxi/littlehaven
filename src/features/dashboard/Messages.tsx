@@ -3,8 +3,8 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { FixedSizeList as List } from 'react-window';
 import { io } from 'socket.io-client';
 
+import BrandLoader from '@/components/BrandLoader';
 import ChatUser from '@/components/ChatUser';
-import Loader from '@/components/Loader';
 import { formatDate } from '@/utils/Helpers';
 
 import type { Message } from '../../types/message';
@@ -394,7 +394,7 @@ const Messages = (props: {
         next={fetchMoreOlder}
         hasMore={hasMoreTop}
         inverse
-        loader={<Loader />}
+        loader={<BrandLoader />}
         style={{ display: 'flex', flexDirection: 'column-reverse' }}
         scrollableTarget="messages-scrollable"
       >

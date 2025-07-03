@@ -12,6 +12,7 @@ export async function generateMetadata(props: { params: { locale: string } }) {
   return {
     title: t('meta_title'),
     description: t('meta_description'),
+    icons: [{ rel: 'icon', url: '/favicon.svg' }],
   };
 }
 
@@ -19,29 +20,19 @@ export default function DashboardLayout(props: { children: React.ReactNode }) {
   const t = useTranslations('DashboardLayout');
 
   return (
-    <div className="h-screen shadow-md">
-      <div className="mx-auto flex max-w-screen-xl items-center justify-between px-3 py-4">
-        <DashboardHeader
-          menu={[
-            {
-              href: '/dashboard',
-              label: t('home'),
-            },
-            {
-              href: '/dashboard/search',
-              label: t('search'),
-            },
-            {
-              href: '/dashboard/circle-profile',
-              label: t('settings'),
-            },
-          ]}
-        />
-      </div>
-
-      <div className="h-[calc(100vh-64px)] flex-1 border border-black bg-muted p-4">
-        <div className="h-full">{props.children}</div>
-      </div>
+    <div className="flex min-h-screen w-full flex-col bg-gray-50">
+      {/* Header */}
+      <header className="flex w-full bg-white/90 px-3 py-4 shadow-sm">
+        <div className="flex w-full max-w-7xl items-center justify-between">
+          <DashboardHeader
+            menu={[{ href: '/dashboard/search', label: t('search') }]}
+          />
+        </div>
+      </header>
+      {/* Main Content */}
+      <main className="flex flex-1 items-center justify-center p-6">
+        {props.children}
+      </main>
     </div>
   );
 }
