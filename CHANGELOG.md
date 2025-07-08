@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/jxxi/circles/compare/v1.9.0...v1.9.1) (2025-07-08)
+
+
+### Bug Fixes
+
+* clean up UserCircleList rendering ([f85be7e](https://github.com/jxxi/circles/commit/f85be7e5fcdd8d1d5ea2b818250886808c6b6d5e))
+
 # [1.9.0](https://github.com/jxxi/circles/compare/v1.8.1...v1.9.0) (2025-07-03)
 
 
