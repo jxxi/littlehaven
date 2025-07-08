@@ -142,7 +142,7 @@ const DashboardIndexPage = () => {
         {/* Sidebar */}
         <div className="flex h-full w-72 flex-col border-r border-warmth-orange bg-cream p-6">
           {loading && <BrandLoader />}
-          {circles.length > 0 ? (
+          {circles.length > 0 && !loading ? (
             <UserCircleList
               circles={circles}
               currentCircleId={activeCircleId}

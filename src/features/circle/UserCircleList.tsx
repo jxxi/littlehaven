@@ -109,7 +109,7 @@ const UserCircleList: React.FC<UserCircleListProps> = ({
                   }
                 }}
               >
-                #{channel.name}
+                {channel.name}
               </Button>
             ))}
           </div>

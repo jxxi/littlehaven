@@ -118,6 +118,10 @@ const ChatPanel = ({
     fetchMembers();
   }, [currentCircleId]);
 
+  useEffect(() => {
+    setMessages([]);
+  }, [currentChannelId]);
+
   const handleSendMessage = async () => {
     if (!message.trim() || !currentCircleId || !currentChannelId) {
       // TODO: Show error notification to user
