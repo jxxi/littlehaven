@@ -18,6 +18,9 @@ const bundleAnalyzer = withBundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  compiler: {
+    styledComponents: true,
+  },
   images: {
     domains: ['media.tenor.com', 'img.clerk.com'],
   },

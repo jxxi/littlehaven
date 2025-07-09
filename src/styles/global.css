@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Edu+NSW+ACT+Cursive:wght@400..700&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -78,9 +78,21 @@ body {
   font-family: theme('fontFamily.sans');
 }
 
-h1, h2, h3, .font-hand {
+h1, .font-hand {
   font-family: 'Edu NSW ACT Cursive', cursive;
   font-optical-sizing: auto;
   font-weight: 700;
   font-style: normal;
+}
+h2, h3 {
+  font-family: 'Source Sans 3', sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-style: normal;
+}
+
+@keyframes float {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0); }
 }

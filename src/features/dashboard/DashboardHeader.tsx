@@ -20,7 +20,7 @@ const DashboardHeader = (props: {
   }[];
 }) => {
   return (
-    <div className="flex w-full items-center justify-between">
+    <header className="flex w-full items-center justify-between bg-white px-4 py-1">
       <div className="flex items-center">
         <Link
           href="/dashboard"
@@ -61,7 +61,7 @@ const DashboardHeader = (props: {
         </nav>
       </div>
 
-      <div className="ml-auto flex items-center gap-x-1">
+      <div className="flex items-center gap-x-1">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <ToggleMenuButton />
@@ -93,7 +93,7 @@ const DashboardHeader = (props: {
           }}
         />
       </div>
-    </div>
+    </header>
   );
 };
 

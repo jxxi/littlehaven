@@ -240,6 +240,17 @@ export const userChannelsSchema = pgTable(
   }),
 );
 
+export const signupsSchema = pgTable('signups', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  location: varchar('location', { length: 100 }).notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+});
+
+export type InsertSignup = typeof signupsSchema.$inferInsert;
+export type SelectSignup = typeof signupsSchema.$inferSelect;
+
 export const circlesRelations = relations(circlesSchema, ({ many }) => ({
   members: many(circleMembersSchema),
 }));

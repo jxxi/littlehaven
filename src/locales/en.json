@@ -1,26 +1,11 @@
 {
   "Index": {
-    "meta_title": "SaaS Template - The perfect SaaS template to build and scale your business with ease.",
-    "meta_description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS."
+    "meta_title": "Little Haven",
+    "meta_description": "Little Haven is a platform for parent communities to connect, share, and thrive."
   },
   "Navbar": {
     "sign_in": "Sign In",
-    "sign_up": "Sign Up",
-    "product": "Product",
-    "docs": "Docs",
-    "blog": "Blog",
-    "community": "Community",
-    "company": "Company"
-  },
-  "Hero": {
-    "follow_twitter": "Follow @Ixartz on Twitter",
-    "title": "The perfect <important>SaaS template</important> to build and scale your business with ease.",
-    "description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS.",
-    "primary_button": "Get Started",
-    "secondary_button": "Star on GitHub"
-  },
-  "Sponsors": {
-    "title": "Sponsored by"
+    "sign_up": "Sign Up"
   },
   "Features": {
     "section_subtitle": "Features",

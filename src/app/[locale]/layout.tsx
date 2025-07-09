@@ -9,24 +9,8 @@ import { AllLocales } from '@/utils/AppConfig';
 export const metadata: Metadata = {
   icons: [
     {
-      rel: 'apple-touch-icon',
-      url: '/apple-touch-icon.png',
-    },
-    {
       rel: 'icon',
-      type: 'image/png',
-      sizes: '32x32',
-      url: '/favicon-32x32.png',
-    },
-    {
-      rel: 'icon',
-      type: 'image/png',
-      sizes: '16x16',
-      url: '/favicon-16x16.png',
-    },
-    {
-      rel: 'icon',
-      url: '/favicon.ico',
+      url: '/favicon.svg',
     },
   ],
 };
@@ -46,7 +30,7 @@ export default function RootLayout(props: {
 
   return (
     <html lang={props.params.locale}>
-      <body className="bg-background text-foreground antialiased">
+      <body className="bg-gradient-to-br from-slate-100 to-slate-200 font-sans text-gray-700 antialiased">
         <NextIntlClientProvider
           locale={props.params.locale}
           messages={messages}

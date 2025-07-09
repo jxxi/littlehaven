@@ -85,6 +85,7 @@ const config = {
       },
       fontFamily: {
         hand: ['"Edu NSW ACT Hand Cursive"', 'cursive'],
+        sans: ['"Source Sans 3"', 'sans-serif'],
       },
     },
   },

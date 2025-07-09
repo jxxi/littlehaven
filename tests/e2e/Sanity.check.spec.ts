@@ -22,7 +22,7 @@ test.describe('Sanity', () => {
 
       await expect(
         page.getByText(
-          'The perfect SaaS template to build and scale your business with ease.',
+          'Little Haven is a platform for parent communities to connect, share, and thrive.',
         ),
       ).toBeVisible();
     });

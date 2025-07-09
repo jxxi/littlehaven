@@ -20,19 +20,17 @@ export default function DashboardLayout(props: { children: React.ReactNode }) {
   const t = useTranslations('DashboardLayout');
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-gray-50">
+    <div className="flex h-fit w-full flex-col overflow-hidden bg-gray-50">
       {/* Header */}
-      <header className="flex w-full bg-white/90 px-3 py-4 shadow-sm">
-        <div className="flex w-full max-w-7xl items-center justify-between">
+      <header className="flex w-full bg-white/90 px-3 py-4">
+        <div className="flex w-full items-center justify-between">
           <DashboardHeader
             menu={[{ href: '/dashboard/search', label: t('search') }]}
           />
         </div>
       </header>
-      {/* Main Content */}
-      <main className="flex flex-1 items-center justify-center p-6">
-        {props.children}
-      </main>
+      {/* Main Content (smaller padding) */}
+      <main className="flex-1 overflow-y-auto p-1">{props.children}</main>
     </div>
   );
 }
