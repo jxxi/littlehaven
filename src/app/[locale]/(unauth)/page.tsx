@@ -1,6 +1,5 @@
 'use client';
 
-import { Waitlist } from '@clerk/nextjs';
 import { useState } from 'react';
 
 import {
@@ -31,8 +30,122 @@ const brand = {
   lavender: '#8b5cf6',
 };
 
+const Label = ({
+  children,
+  htmlFor,
+}: {
+  children: React.ReactNode;
+  htmlFor: string;
+}) => (
+  <label className="mb-3 block text-lg font-medium" htmlFor={htmlFor}>
+    {children}
+  </label>
+);
+
+const Input = ({
+  id,
+  type = 'text',
+  value,
+  onChange,
+  required,
+  autoComplete,
+  placeholder,
+}: {
+  id: string;
+  type?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  required?: boolean;
+  autoComplete?: string;
+  placeholder?: string;
+}) => (
+  <input
+    id={id}
+    type={type}
+    value={value}
+    onChange={onChange}
+    required={required}
+    autoComplete={autoComplete}
+    placeholder={placeholder}
+    className="w-full rounded-xl border-[1.5px] border-gray-200 bg-white/80 px-5 py-4 text-lg text-gray-700 outline-none transition-all duration-200 focus:border-indigo-500 focus:bg-white/95 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.1)]"
+  />
+);
+
+const Button = ({
+  children,
+  type = 'button',
+  disabled,
+  onClick,
+  className,
+}: {
+  children: React.ReactNode;
+  type?: 'button' | 'submit';
+  disabled?: boolean;
+  onClick?: () => void;
+  className?: string;
+}) => (
+  <button
+    type={type === 'submit' ? 'submit' : 'button'}
+    disabled={disabled}
+    onClick={onClick}
+    className={`mt-2 rounded-xl border-none bg-gradient-to-r from-indigo-500 to-purple-600 px-0 py-4 text-lg font-bold text-white transition-colors duration-200 hover:from-purple-600 hover:to-indigo-500 disabled:opacity-50 ${className || ''}`}
+  >
+    {children}
+  </button>
+);
+
+const Error = ({ children }: { children: React.ReactNode }) => (
+  <div className="mt-4 font-semibold text-orange-500">{children}</div>
+);
+
 export default function IndexPage() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [location, setLocation] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+
+  const validateEmail = (newEmail: string) =>
+    /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/.test(newEmail);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!name.trim() || !location.trim()) {
+      setError('Please enter your name and location.');
+      return;
+    }
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          email,
+          location: location.trim(),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data?.error || 'Something went wrong.');
+      } else {
+        setModalOpen(true);
+        setName('');
+        setEmail('');
+        setLocation('');
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Wrapper>
@@ -56,7 +169,7 @@ export default function IndexPage() {
             style={{
               color: 'black',
               fontWeight: 'semibold',
-              fontSize: '1rem',
+              fontSize: '2rem',
               marginBottom: '0.5rem',
               marginTop: '0.5rem',
             }}
@@ -64,25 +177,54 @@ export default function IndexPage() {
             Join the waitlist
           </h2>
           <HeroSubtitle style={{ color: brand.purple, marginBottom: '1.5rem' }}>
-            Enter your email address and we&apos;ll let you know when your spot
-            is ready
+            Enter your details and we&apos;ll let you know when your spot is
+            ready
           </HeroSubtitle>
-          <Waitlist
-            appearance={{
-              elements: {
-                header: 'hidden',
-                logo: 'hidden',
-                button: 'bg-gradient-to-r from-indigo-500 to-purple-600',
-                formButtonPrimary:
-                  'bg-gradient-to-r from-indigo-500 to-purple-600',
-                footerActionLink: `text-md font-semibold text-[${brand.purple}] hover:underline`,
-                footerActionText: 'text-md',
-                formFieldInput: 'text-md',
-                formFieldLabel: 'text-md',
-              },
-            }}
-          />
-
+          <form className="flex w-full flex-col gap-4" onSubmit={handleSubmit}>
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              autoComplete="name"
+              placeholder="Enter your full name"
+            />
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+              placeholder="Enter your email address"
+            />
+            <Label htmlFor="location">Location</Label>
+            <Input
+              id="location"
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              required
+              autoComplete="off"
+              placeholder="City, State or Country"
+            />
+            {error && <Error>{error}</Error>}
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Submitting...' : 'Join the waitlist'}
+            </Button>
+          </form>
+          <div className="mt-4 text-center text-sm">
+            Already have access?{' '}
+            <a
+              href="/sign-in"
+              className="font-semibold text-indigo-600 hover:underline"
+            >
+              Sign in
+            </a>
+          </div>
           {modalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
               <div className="w-full max-w-sm rounded-xl bg-white p-8 text-center shadow-xl">

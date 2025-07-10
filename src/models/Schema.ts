@@ -240,7 +240,7 @@ export const userChannelsSchema = pgTable(
   }),
 );
 
-export const signupsSchema = pgTable('signups', {
+export const waitlistSchema = pgTable('waitlist', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(),
@@ -248,8 +248,8 @@ export const signupsSchema = pgTable('signups', {
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
 });
 
-export type InsertSignup = typeof signupsSchema.$inferInsert;
-export type SelectSignup = typeof signupsSchema.$inferSelect;
+export type InsertSignup = typeof waitlistSchema.$inferInsert;
+export type SelectSignup = typeof waitlistSchema.$inferSelect;
 
 export const circlesRelations = relations(circlesSchema, ({ many }) => ({
   members: many(circleMembersSchema),

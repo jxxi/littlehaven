@@ -14,19 +14,16 @@ import { Env } from './Env';
 let client;
 let drizzle;
 
-// Use real PostgreSQL in production, PGlite in development
-if (process.env.NODE_ENV === 'production' && Env.DATABASE_URL) {
+// Always use Postgres if DATABASE_URL is set, regardless of NODE_ENV
+if (Env.DATABASE_URL) {
   try {
-    console.log('Connecting to production database...');
+    console.log('Connecting to Postgres...');
     client = new Client({
       connectionString: Env.DATABASE_URL,
-      ssl:
-        process.env.NODE_ENV === 'production'
-          ? { rejectUnauthorized: false }
-          : false,
+      ssl: { rejectUnauthorized: false },
     });
     await client.connect();
-    console.log('Successfully connected to production database');
+    console.log('Connected to Postgres');
 
     drizzle = drizzlePg(client, { schema });
     await migratePg(drizzle, {
@@ -35,9 +32,8 @@ if (process.env.NODE_ENV === 'production' && Env.DATABASE_URL) {
     console.log('Database migrations completed');
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.error('Failed to connect to production database:', error);
+    console.error('Failed to connect to Postgres:', error);
     console.log('Falling back to PGlite...');
-    // Fallback to PGlite if production database fails
     const global = globalThis as unknown as { client: PGlite };
 
     if (!global.client) {
@@ -51,7 +47,7 @@ if (process.env.NODE_ENV === 'production' && Env.DATABASE_URL) {
     });
   }
 } else {
-  console.log('Using PGlite for development');
+  console.log('Using PGlite (no DATABASE_URL set)');
   const global = globalThis as unknown as { client: PGlite };
 
   if (!global.client) {
