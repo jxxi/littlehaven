@@ -1,5 +1,6 @@
 import '@/styles/global.css';
 
+import { ClerkProvider } from '@clerk/nextjs';
 import type { Metadata } from 'next';
 import { NextIntlClientProvider, useMessages } from 'next-intl';
 import { unstable_setRequestLocale } from 'next-intl/server';
@@ -31,12 +32,14 @@ export default function RootLayout(props: {
   return (
     <html lang={props.params.locale}>
       <body className="bg-gradient-to-br from-slate-100 to-slate-200 font-sans text-gray-700 antialiased">
-        <NextIntlClientProvider
-          locale={props.params.locale}
-          messages={messages}
-        >
-          {props.children}
-        </NextIntlClientProvider>
+        <ClerkProvider>
+          <NextIntlClientProvider
+            locale={props.params.locale}
+            messages={messages}
+          >
+            {props.children}
+          </NextIntlClientProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

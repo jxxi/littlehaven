@@ -1,4 +1,4 @@
-# Circles: Next JS 14+, Tailwind CSS 3.4 and TypeScript
+# Little Haven: Next JS 14+, Tailwind CSS 3.4 and TypeScript
 
 ![ScreenShot](/public/assets/images/circles-landing.png)
 

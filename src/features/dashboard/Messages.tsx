@@ -1,16 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { FixedSizeList as List } from 'react-window';
-import { io } from 'socket.io-client';
 
 import BrandLoader from '@/components/BrandLoader';
 import ChatUser from '@/components/ChatUser';
 import { formatDate } from '@/utils/Helpers';
+import { getSocket } from '@/utils/socket';
 
 import type { Message } from '../../types/message';
 import { MessageActions } from './MessageActions';
 
-const socket = io('http://localhost:3001'); // or wherever your server runs
+const socket = getSocket();
 
 const PAGE_SIZE = 50;
 

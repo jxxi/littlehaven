@@ -26,8 +26,8 @@ export default function middleware(
     request.nextUrl.pathname.includes('/sign-up') ||
     isProtectedRoute(request)
   ) {
-    return clerkMiddleware((auth, req) => {
-      const authObj = auth();
+    return clerkMiddleware(async (auth, req) => {
+      const authObj = await auth();
       const { userId } = authObj;
 
       // If user is authenticated and trying to access sign-up, redirect to dashboard
@@ -38,15 +38,12 @@ export default function middleware(
         return Response.redirect(dashboardUrl);
       }
 
-      if (isProtectedRoute(req)) {
+      // If trying to access protected route without auth, redirect to sign-in
+      if (!userId && isProtectedRoute(req)) {
         const locale =
           req.nextUrl.pathname.match(/(\/.*)\/dashboard/)?.at(1) ?? '';
-
         const signInUrl = new URL(`${locale}/sign-in`, req.url);
-        authObj.protect({
-          // `unauthenticatedUrl` is needed to avoid error: "Unable to find `next-intl` locale because the middleware didn't run on this request"
-          unauthenticatedUrl: signInUrl.toString(),
-        });
+        return Response.redirect(signInUrl);
       }
 
       return intlMiddleware(req);

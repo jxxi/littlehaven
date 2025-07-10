@@ -10,16 +10,27 @@ app.use(cors());
 
 const server = http.createServer(app);
 
-// Configure CORS
+// Get environment variables
+const PORT = process.env.PORT || 3001;
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+// Configure CORS for production
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin:
+      NODE_ENV === 'production'
+        ? [CLIENT_URL, 'https://littlehaven.io'] // Add your production domains
+        : CLIENT_URL,
     methods: ['GET', 'POST'],
     credentials: true,
   },
+  transports: ['websocket', 'polling'], // Enable both transports
 });
 
 io.on('connection', (socket) => {
+  // console.log(`User connected: ${socket.id}`);
+
   socket.on('joinChannel', (channelId) => {
     socket.join(channelId);
     // console.log(`User ${socket.id} joined channel ${channelId}`);
@@ -39,11 +50,13 @@ io.on('connection', (socket) => {
   // --- Reaction events ---
   socket.on('addReaction', (data) => {
     // data: { messageId, emoji, userId, channelId }
+    // console.log('Reaction added:', data);
     io.to(data.channelId).emit('reactionAdded', data);
   });
 
   socket.on('removeReaction', (data) => {
     // data: { messageId, emoji, userId, channelId }
+    // console.log('Reaction removed:', data);
     io.to(data.channelId).emit('reactionRemoved', data);
   });
 
@@ -53,7 +66,8 @@ io.on('connection', (socket) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   // console.log(`Socket.IO server running on port ${PORT}`);
+  // console.log(`Environment: ${NODE_ENV}`);
+  // console.log(`Client URL: ${CLIENT_URL}`);
 });

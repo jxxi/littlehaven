@@ -4,7 +4,7 @@
   "scripts": {
     "dev:spotlight": "spotlight-sidecar",
     "dev:next": "next dev",
-    "dev:socket": "node src/server/socketServer.js",
+    "dev:socket": "cd socket-server && npm run dev",
     "dev": "run-p dev:*",
     "build": "next build",
     "start": "next start",
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@clerk/localizations": "^2.5.1",
-    "@clerk/nextjs": "^5.2.6",
+    "@clerk/nextjs": "^6.24.0",
     "@electric-sql/pglite": "^0.1.5",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",

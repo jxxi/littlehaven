@@ -2,11 +2,11 @@
 
 import { UserButton } from '@clerk/nextjs';
 import React, { useEffect, useState } from 'react';
-import { io } from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
 
 import BrandLoader from '@/components/BrandLoader';
 import { GifIcon } from '@/components/icons/GifIcon';
+import { getSocket } from '@/utils/socket';
 
 import type { CreateMessage, Message } from '../../types/message';
 import { ChatHeader } from './ChatHeader';
@@ -16,7 +16,7 @@ import { MembersSidebar } from './MembersSidebar';
 import { Messages } from './Messages';
 import { SearchSidebar } from './SearchSidebar';
 
-const socket = io('http://localhost:3001');
+const socket = getSocket();
 
 const ChatPanel = ({
   userId,
