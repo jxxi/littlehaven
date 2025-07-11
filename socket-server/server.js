@@ -1,10 +1,16 @@
 const Sentry = require('@sentry/node');
 
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  environment: process.env.NODE_ENV,
-  tracesSampleRate: 1.0,
-});
+// Initialize Sentry with error handling
+try {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV,
+    tracesSampleRate: 1.0,
+  });
+} catch (error) {
+  // eslint-disable-next-line no-console
+  console.error('Failed to initialize Sentry:', error);
+}
 
 const { Server } = require('socket.io');
 const http = require('http');
@@ -16,8 +22,10 @@ const app = express();
 // Use CORS middleware
 app.use(cors());
 
-// Sentry request handler
-app.use(Sentry.Handlers.requestHandler());
+// Sentry request handler - only if available
+if (Sentry && Sentry.Handlers && Sentry.Handlers.requestHandler) {
+  app.use(Sentry.Handlers.requestHandler());
+}
 
 const server = http.createServer(app);
 
@@ -45,7 +53,9 @@ io.on('connection', (socket) => {
     try {
       socket.join(channelId);
     } catch (err) {
-      Sentry.captureException(err);
+      if (Sentry && Sentry.captureException) {
+        Sentry.captureException(err);
+      }
     }
   });
 
@@ -53,7 +63,9 @@ io.on('connection', (socket) => {
     try {
       socket.leave(channelId);
     } catch (err) {
-      Sentry.captureException(err);
+      if (Sentry && Sentry.captureException) {
+        Sentry.captureException(err);
+      }
     }
   });
 
@@ -61,7 +73,9 @@ io.on('connection', (socket) => {
     try {
       io.to(message.channelId).emit('receiveMessage', message);
     } catch (err) {
-      Sentry.captureException(err);
+      if (Sentry && Sentry.captureException) {
+        Sentry.captureException(err);
+      }
     }
   });
 
@@ -70,7 +84,9 @@ io.on('connection', (socket) => {
     try {
       io.to(data.channelId).emit('reactionAdded', data);
     } catch (err) {
-      Sentry.captureException(err);
+      if (Sentry && Sentry.captureException) {
+        Sentry.captureException(err);
+      }
     }
   });
 
@@ -78,7 +94,9 @@ io.on('connection', (socket) => {
     try {
       io.to(data.channelId).emit('reactionRemoved', data);
     } catch (err) {
-      Sentry.captureException(err);
+      if (Sentry && Sentry.captureException) {
+        Sentry.captureException(err);
+      }
     }
   });
 
@@ -87,8 +105,10 @@ io.on('connection', (socket) => {
   });
 });
 
-// Sentry error handler (after all routes/middleware)
-app.use(Sentry.Handlers.errorHandler());
+// Sentry error handler (after all routes/middleware) - only if available
+if (Sentry && Sentry.Handlers && Sentry.Handlers.errorHandler) {
+  app.use(Sentry.Handlers.errorHandler());
+}
 
 // Start the server
 server.listen(PORT, () => {
@@ -99,8 +119,12 @@ server.listen(PORT, () => {
 
 // Optional: Log uncaught exceptions/rejections
 process.on('uncaughtException', (err) => {
-  Sentry.captureException(err);
+  if (Sentry && Sentry.captureException) {
+    Sentry.captureException(err);
+  }
 });
 process.on('unhandledRejection', (err) => {
-  Sentry.captureException(err);
+  if (Sentry && Sentry.captureException) {
+    Sentry.captureException(err);
+  }
 });
