@@ -56,6 +56,7 @@ io.on('connection', (socket) => {
       socket.join(channelId);
     } catch (err) {
       if (Sentry && Sentry.captureException) {
+        console.log('Capturing exception in joinChannel', err);
         Sentry.captureException(err);
       }
     }
@@ -66,6 +67,7 @@ io.on('connection', (socket) => {
       socket.leave(channelId);
     } catch (err) {
       if (Sentry && Sentry.captureException) {
+        console.log('Capturing exception in leaveChannel', err);
         Sentry.captureException(err);
       }
     }
@@ -76,6 +78,7 @@ io.on('connection', (socket) => {
       io.to(message.channelId).emit('receiveMessage', message);
     } catch (err) {
       if (Sentry && Sentry.captureException) {
+        console.log('Capturing exception in sendMessage', err);
         Sentry.captureException(err);
       }
     }
@@ -87,6 +90,7 @@ io.on('connection', (socket) => {
       io.to(data.channelId).emit('reactionAdded', data);
     } catch (err) {
       if (Sentry && Sentry.captureException) {
+        console.log('Capturing exception in addReaction', err);
         Sentry.captureException(err);
       }
     }
@@ -97,12 +101,14 @@ io.on('connection', (socket) => {
       io.to(data.channelId).emit('reactionRemoved', data);
     } catch (err) {
       if (Sentry && Sentry.captureException) {
+        console.log('Capturing exception in removeReaction', err);
         Sentry.captureException(err);
       }
     }
   });
 
   socket.on('disconnect', () => {
+    console.log('Disconnected');
     // No error expected here
   });
 });
@@ -122,11 +128,13 @@ server.listen(PORT, () => {
 // Optional: Log uncaught exceptions/rejections
 process.on('uncaughtException', (err) => {
   if (Sentry && Sentry.captureException) {
+    console.log('Capturing exception in uncaughtException', err);
     Sentry.captureException(err);
   }
 });
 process.on('unhandledRejection', (err) => {
   if (Sentry && Sentry.captureException) {
+    console.log('Capturing exception in unhandledRejection', err);
     Sentry.captureException(err);
   }
 });
