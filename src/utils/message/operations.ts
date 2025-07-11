@@ -7,6 +7,7 @@ import {
   messagesSchema,
   reactionsSchema,
 } from '@/models/Schema';
+import { logError } from '@/utils/Logger';
 
 export async function createMessage(
   circleId: string,
@@ -46,6 +47,7 @@ export async function createMessage(
       },
     };
   } catch (error) {
+    logError('Error in createMessage', error);
     throw new Error('Failed to create message');
   }
 }
@@ -62,6 +64,7 @@ export async function updateMessage(
       .returning();
     return updatedMessage; // Return the updated message
   } catch (error) {
+    logError('Error in updateMessage', error);
     throw new Error('Failed to update message');
   }
 }
@@ -74,6 +77,7 @@ export async function deleteMessage(messageId: string) {
       .returning();
     return deletedMessage; // Return the deleted message
   } catch (error) {
+    logError('Error in deleteMessage', error);
     throw new Error('Failed to delete message');
   }
 }
@@ -85,6 +89,7 @@ export async function getAllMessagesForCircle(circleId: string) {
     });
     return messages; // Return the list of messages
   } catch (error) {
+    logError('Error in getAllMessagesForCircle', error);
     throw new Error('Failed to fetch messages for circle');
   }
 }
@@ -112,6 +117,7 @@ export async function getAllMessagesForChannel(channelId: string) {
 
     return messagesWithUsers;
   } catch (error) {
+    logError('Error in getAllMessagesForChannel', error);
     throw new Error('Failed to fetch messages for channel');
   }
 }
@@ -123,6 +129,7 @@ export async function getMessageById(messageId: string) {
     });
     return message || null; // Return null if no message is found
   } catch (error) {
+    logError('Error in getMessageById', error);
     throw new Error('Failed to fetch message');
   }
 }
@@ -146,6 +153,7 @@ export async function createAttachment(
     });
     return newAttachment; // Return the newly created attachment
   } catch (error) {
+    logError('Error in createAttachment', error);
     throw new Error('Failed to create attachment');
   }
 }
@@ -158,6 +166,7 @@ export async function deleteAttachment(attachmentId: string) {
       .returning();
     return deletedAttachment;
   } catch (error) {
+    logError('Error in deleteAttachment', error);
     throw new Error('Failed to delete attachment');
   }
 }
@@ -175,6 +184,7 @@ export async function createReaction(
     });
     return newReaction; // Return the newly created reaction
   } catch (error) {
+    logError('Error in createReaction', error);
     throw new Error('Failed to create reaction');
   }
 }
@@ -193,6 +203,7 @@ export async function deleteReaction(
       .returning();
     return deletedReaction; // Return the deleted reaction
   } catch (error) {
+    logError('Error in deleteReaction', error);
     throw new Error('Failed to delete reaction');
   }
 }
@@ -204,6 +215,7 @@ export async function getAllReactionsForMessage(messageId: string) {
     });
     return reactions;
   } catch (error) {
+    logError('Error in getAllReactionsForMessage', error);
     throw new Error('Failed to fetch reactions for message');
   }
 }

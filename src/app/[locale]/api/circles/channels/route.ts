@@ -7,6 +7,7 @@ import {
   getAllChannelsForCircle,
   getChannelById,
 } from '@/utils/channel/operations';
+import { logError } from '@/utils/Logger';
 
 export async function POST(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -26,6 +27,7 @@ export async function POST(request: NextRequest) {
     const newChannel = await createChannel(circleId, name, description, type);
     return NextResponse.json(newChannel, { status: 201 });
   } catch (error) {
+    logError('Error in channels POST route', error);
     return NextResponse.json(
       {
         message:
@@ -55,6 +57,7 @@ export async function PUT(request: NextRequest) {
     const newChannel = await createChannel(circleId, name, description, type);
     return NextResponse.json(newChannel, { status: 201 });
   } catch (error) {
+    logError('Error in channels PUT route', error);
     return NextResponse.json(
       {
         message:
@@ -78,6 +81,7 @@ export async function DELETE(request: NextRequest) {
     const deletedChannel = await deleteChannel(channelId);
     return NextResponse.json(deletedChannel, { status: 200 });
   } catch (error) {
+    logError('Error in channels DELETE route', error);
     return NextResponse.json(
       {
         message:
@@ -98,6 +102,7 @@ export async function GET(request: NextRequest) {
       const channel = await getChannelById(channelId);
       return NextResponse.json(channel, { status: 200 });
     } catch (error) {
+      logError('Error in channels GET route - getChannelById', error);
       return NextResponse.json(
         {
           message:
@@ -111,6 +116,7 @@ export async function GET(request: NextRequest) {
       const channels = await getAllChannelsForCircle(circleId);
       return NextResponse.json(channels, { status: 200 });
     } catch (error) {
+      logError('Error in channels GET route - getAllChannelsForCircle', error);
       return NextResponse.json(
         {
           message:

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 
 import { getUserCircles } from '@/utils/clerk/operations';
 import { updateUserInterests } from '@/utils/clerk/private/operations';
+import { logError } from '@/utils/Logger';
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,6 +14,7 @@ export async function GET(req: NextRequest) {
     const circles = await getUserCircles(userId);
     return NextResponse.json(circles, { status: 200 });
   } catch (error) {
+    logError('Error in circles user GET route', error);
     return NextResponse.json(
       { error: 'Failed to fetch circles for user' },
       { status: 500 },
@@ -37,6 +39,7 @@ export async function POST(req: NextRequest) {
       { status: 200 },
     );
   } catch (error) {
+    logError('Error in circles user POST route', error);
     return NextResponse.json(
       { error: 'Failed to update user interests metadata' },
       { status: 500 },

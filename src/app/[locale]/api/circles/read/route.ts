@@ -4,6 +4,7 @@ import {
   getUnreadStatus,
   updateCircleLastRead,
 } from '@/utils/circle/member/operations';
+import { logError } from '@/utils/Logger';
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -15,6 +16,7 @@ export async function GET(req: NextRequest) {
       const circle = await getUnreadStatus(circleId as string);
       return NextResponse.json(circle, { status: 200 });
     } catch (error) {
+      logError('Error in circles read GET route', error);
       return NextResponse.json(
         { error: 'Failed to fetch circle read status' },
         { status: 500 },
@@ -37,6 +39,7 @@ export async function POST(req: NextRequest) {
     const response = await updateCircleLastRead(circleId, userId);
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
+    logError('Error in circles read POST route', error);
     return NextResponse.json(
       { error: 'Failed to update circle to read' },
       { status: 500 },

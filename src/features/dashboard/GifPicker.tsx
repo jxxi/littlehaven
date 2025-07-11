@@ -2,6 +2,8 @@ import { Search } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
+import { logError } from '@/utils/Logger';
+
 import type { Gif, GifPickerProps } from './GifPickerProps';
 
 const GifPicker = ({ onSelect, onClose }: GifPickerProps) => {
@@ -31,7 +33,7 @@ const GifPicker = ({ onSelect, onClose }: GifPickerProps) => {
       const data = await response.json();
       setGifs(data.results);
     } catch (error) {
-      /* empty */
+      logError('Error in GifPicker feature', error);
     }
   };
 

@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+import { logError } from '@/utils/Logger';
 import {
   checkExistingEmail,
   createWaitlistSignup,
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
     const { data: existing, error: checkError } =
       await checkExistingEmail(email);
     if (checkError) {
-      console.error('Error checking existing email:', checkError);
+      logError('Error checking existing email', checkError);
       return NextResponse.json({ error: 'Database error' }, { status: 500 });
     }
     if (existing) {
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
       location,
     });
     if (insertError) {
-      console.error('Error inserting waitlist signup:', insertError);
+      logError('Error inserting waitlist signup', insertError);
       return NextResponse.json(
         { error: 'Failed to add to waitlist.' },
         { status: 500 },
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Waitlist error:', error);
+    logError('Waitlist error', error);
     return NextResponse.json(
       { error: 'Failed to add to waitlist' },
       { status: 500 },

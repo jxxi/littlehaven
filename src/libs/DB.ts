@@ -8,6 +8,7 @@ import path from 'path';
 import { Client } from 'pg';
 
 import * as schema from '@/models/Schema';
+import { logError } from '@/utils/Logger';
 
 import { Env } from './Env';
 
@@ -17,37 +18,20 @@ let drizzle;
 // Always use Postgres if DATABASE_URL is set, regardless of NODE_ENV
 if (Env.DATABASE_URL) {
   try {
-    console.log('Connecting to Postgres...');
     client = new Client({
       connectionString: Env.DATABASE_URL,
       ssl: { rejectUnauthorized: false },
     });
     await client.connect();
-    console.log('Connected to Postgres');
 
     drizzle = drizzlePg(client, { schema });
     await migratePg(drizzle, {
       migrationsFolder: path.join(process.cwd(), 'migrations'),
     });
-    console.log('Database migrations completed');
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Failed to connect to Postgres:', error);
-    console.log('Falling back to PGlite...');
-    const global = globalThis as unknown as { client: PGlite };
-
-    if (!global.client) {
-      global.client = new PGlite();
-      await global.client.waitReady;
-    }
-
-    drizzle = drizzlePglite(global.client, { schema });
-    await migratePglite(drizzle, {
-      migrationsFolder: path.join(process.cwd(), 'migrations'),
-    });
+    logError('Failed to connect to Postgres', error);
   }
 } else {
-  console.log('Using PGlite (no DATABASE_URL set)');
   const global = globalThis as unknown as { client: PGlite };
 
   if (!global.client) {

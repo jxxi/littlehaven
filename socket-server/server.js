@@ -1,3 +1,11 @@
+const Sentry = require('@sentry/node');
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.NODE_ENV,
+  tracesSampleRate: 1.0,
+});
+
 const { Server } = require('socket.io');
 const http = require('http');
 const express = require('express');
@@ -7,6 +15,9 @@ const app = express();
 
 // Use CORS middleware
 app.use(cors());
+
+// Sentry request handler
+app.use(Sentry.Handlers.requestHandler());
 
 const server = http.createServer(app);
 
@@ -29,45 +40,67 @@ const io = new Server(server, {
 });
 
 io.on('connection', (socket) => {
-  // console.log(`User connected: ${socket.id}`);
-
+  // socket.on handlers with Sentry error capture
   socket.on('joinChannel', (channelId) => {
-    socket.join(channelId);
-    // console.log(`User ${socket.id} joined channel ${channelId}`);
+    try {
+      socket.join(channelId);
+    } catch (err) {
+      Sentry.captureException(err);
+    }
   });
 
   socket.on('leaveChannel', (channelId) => {
-    socket.leave(channelId);
-    // console.log(`User ${socket.id} left channel ${channelId}`);
+    try {
+      socket.leave(channelId);
+    } catch (err) {
+      Sentry.captureException(err);
+    }
   });
 
   socket.on('sendMessage', (message) => {
-    // console.log('Message received:', message);
-    // Broadcast only to users in the same channel
-    io.to(message.channelId).emit('receiveMessage', message);
+    try {
+      io.to(message.channelId).emit('receiveMessage', message);
+    } catch (err) {
+      Sentry.captureException(err);
+    }
   });
 
   // --- Reaction events ---
   socket.on('addReaction', (data) => {
-    // data: { messageId, emoji, userId, channelId }
-    // console.log('Reaction added:', data);
-    io.to(data.channelId).emit('reactionAdded', data);
+    try {
+      io.to(data.channelId).emit('reactionAdded', data);
+    } catch (err) {
+      Sentry.captureException(err);
+    }
   });
 
   socket.on('removeReaction', (data) => {
-    // data: { messageId, emoji, userId, channelId }
-    // console.log('Reaction removed:', data);
-    io.to(data.channelId).emit('reactionRemoved', data);
+    try {
+      io.to(data.channelId).emit('reactionRemoved', data);
+    } catch (err) {
+      Sentry.captureException(err);
+    }
   });
 
   socket.on('disconnect', () => {
-    // console.log('User disconnected:', socket.id);
+    // No error expected here
   });
 });
+
+// Sentry error handler (after all routes/middleware)
+app.use(Sentry.Handlers.errorHandler());
 
 // Start the server
 server.listen(PORT, () => {
   // console.log(`Socket.IO server running on port ${PORT}`);
   // console.log(`Environment: ${NODE_ENV}`);
   // console.log(`Client URL: ${CLIENT_URL}`);
+});
+
+// Optional: Log uncaught exceptions/rejections
+process.on('uncaughtException', (err) => {
+  Sentry.captureException(err);
+});
+process.on('unhandledRejection', (err) => {
+  Sentry.captureException(err);
 });

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { logError } from '@/utils/Logger';
 import {
   createReaction,
   deleteReaction,
@@ -18,6 +19,7 @@ export async function POST(request: Request) {
     await createReaction(messageId, userId, emoji);
     return NextResponse.json({ success: true });
   } catch (error) {
+    logError('Error in messages reactions API route', error);
     return NextResponse.json(
       { error: 'Failed to handle reaction' },
       { status: 500 },
@@ -37,6 +39,7 @@ export async function DELETE(request: Request) {
     await deleteReaction(messageId, userId, emoji);
     return NextResponse.json({ success: true });
   } catch (error) {
+    logError('Error in messages reactions API route', error);
     return NextResponse.json(
       { error: 'Failed to remove reaction' },
       { status: 500 },
@@ -95,6 +98,7 @@ export async function GET(request: Request) {
     }));
     return NextResponse.json({ reactions: result });
   } catch (error) {
+    logError('Error in messages reactions API route', error);
     return NextResponse.json(
       { error: 'Failed to fetch reactions' },
       { status: 500 },

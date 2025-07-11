@@ -8,6 +8,7 @@ import BrandLoader from '@/components/BrandLoader';
 import type { Circle } from '@/features/circle/types';
 import { UserCircleList } from '@/features/circle/UserCircleList';
 import { ChatPanel } from '@/features/dashboard/ChatPanel';
+import { logError } from '@/utils/Logger';
 
 const DashboardIndexPage = () => {
   const { user } = useUser();
@@ -58,6 +59,7 @@ const DashboardIndexPage = () => {
           setCircles([]);
         }
       } catch (error) {
+        logError('Error in dashboard page - fetchCircles', error);
         setCircles([]);
       } finally {
         setLoading(false);

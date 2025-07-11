@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { logError } from '@/utils/Logger';
 import {
   createMessage,
   getAllMessagesWithReactionsForChannel,
@@ -38,6 +39,7 @@ export async function GET(request: NextRequest) {
     }
     return NextResponse.json(messagesWithReactions);
   } catch (error) {
+    logError('Error in messages API route', error);
     return NextResponse.json(
       { error: 'Failed to fetch messages' },
       { status: 500 },
@@ -61,6 +63,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(message);
   } catch (error) {
+    logError('Error in messages API route', error);
     return NextResponse.json(
       { error: 'Failed to create message' },
       { status: 500 },
@@ -88,6 +91,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json(message);
   } catch (error) {
+    logError('Error in messages API route', error);
     return NextResponse.json(
       { error: 'Failed to edit message' },
       { status: 500 },
@@ -119,6 +123,7 @@ export async function DELETE(request: NextRequest) {
     );
     return NextResponse.json({ success: true });
   } catch (error) {
+    logError('Error in messages API route', error);
     return NextResponse.json(
       { error: 'Failed to delete message' },
       { status: 500 },

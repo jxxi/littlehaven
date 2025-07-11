@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import BrandLoader from '@/components/BrandLoader';
 import { GifIcon } from '@/components/icons/GifIcon';
+import { logError } from '@/utils/Logger';
 import { getSocket } from '@/utils/socket';
 
 import type { CreateMessage, Message } from '../../types/message';
@@ -91,6 +92,7 @@ const ChatPanel = ({
           })),
         );
       } catch (error) {
+        logError('Error in ChatPanel feature', error);
         // TODO: Show error notification to user
       } finally {
         setLoading(false);
@@ -177,6 +179,7 @@ const ChatPanel = ({
       if (currentChannelId)
         setReplyToMap((prev) => ({ ...prev, [currentChannelId]: null }));
     } catch (error) {
+      logError('Error in ChatPanel feature', error);
       // TODO: Show error notification to user
     }
   };
@@ -205,6 +208,7 @@ const ChatPanel = ({
       if (!response.ok) throw new Error('Failed to send GIF');
       setShowGifPicker(false);
     } catch (error) {
+      logError('Error in ChatPanel feature', error);
       /* empty */
     }
   };
@@ -239,6 +243,7 @@ const ChatPanel = ({
         ),
       );
     } catch (error) {
+      logError('Error in ChatPanel feature', error);
       // Handle error
     }
   };

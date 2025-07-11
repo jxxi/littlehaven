@@ -7,6 +7,7 @@ import {
   channelSchema,
   userChannelsSchema,
 } from '@/models/Schema';
+import { logError } from '@/utils/Logger';
 
 // Create a new channel
 export async function createChannel(
@@ -30,6 +31,7 @@ export async function createChannel(
     });
     return newChannel; // Return the newly created channel
   } catch (error) {
+    logError('Error in createChannel', error);
     throw new Error('Failed to create channel');
   }
 }
@@ -53,6 +55,7 @@ export async function updateChannel(
       .returning();
     return updatedChannel; // Return the updated channel
   } catch (error) {
+    logError('Error in updateChannel', error);
     throw new Error('Failed to update channel');
   }
 }
@@ -66,6 +69,7 @@ export async function deleteChannel(channelId: string) {
       .returning();
     return deletedChannel; // Return the deleted channel
   } catch (error) {
+    logError('Error in deleteChannel', error);
     throw new Error('Failed to delete channel');
   }
 }
@@ -78,6 +82,7 @@ export async function getAllChannelsForCircle(circleId: string) {
     });
     return channels; // Return the list of channels
   } catch (error) {
+    logError('Error in getAllChannelsForCircle', error);
     throw new Error('Failed to fetch channels for circle');
   }
 }
@@ -90,6 +95,7 @@ export async function getChannelById(channelId: string) {
     });
     return channel || null; // Return null if no channel is found
   } catch (error) {
+    logError('Error in getChannelById', error);
     throw new Error('Failed to fetch channel');
   }
 }
@@ -110,6 +116,7 @@ export async function createChannelPermission(
     });
     return newPermission; // Return the newly created permission
   } catch (error) {
+    logError('Error in createChannelPermission', error);
     throw new Error('Failed to create channel permission');
   }
 }
@@ -129,6 +136,7 @@ export async function updateChannelPermission(
       .returning();
     return updatedPermission; // Return the updated permission
   } catch (error) {
+    logError('Error in updateChannelPermission', error);
     throw new Error('Failed to update channel permission');
   }
 }
@@ -146,6 +154,7 @@ export async function deleteChannelPermission(
       .returning();
     return deletedPermission; // Return the deleted permission
   } catch (error) {
+    logError('Error in deleteChannelPermission', error);
     throw new Error('Failed to delete channel permission');
   }
 }
@@ -158,6 +167,7 @@ export async function getAllPermissionsForChannel(channelId: string) {
     });
     return permissions; // Return the list of permissions
   } catch (error) {
+    logError('Error in getAllPermissionsForChannel', error);
     throw new Error('Failed to fetch permissions for channel');
   }
 }

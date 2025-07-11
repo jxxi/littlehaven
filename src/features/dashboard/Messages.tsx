@@ -5,6 +5,7 @@ import { FixedSizeList as List } from 'react-window';
 import BrandLoader from '@/components/BrandLoader';
 import ChatUser from '@/components/ChatUser';
 import { formatDate } from '@/utils/Helpers';
+import { logError } from '@/utils/Logger';
 import { getSocket } from '@/utils/socket';
 
 import type { Message } from '../../types/message';
@@ -82,57 +83,66 @@ const Messages = (props: {
   };
 
   const handleAddReaction = async (messageId: string, emoji: string) => {
-    await fetch('/api/messages/reactions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messageId, userId: currentUserId, emoji }),
-    });
-    if (currentChannelId) {
-      socket.emit('addReaction', {
-        messageId,
-        emoji,
-        userId: currentUserId,
-        channelId: currentChannelId,
+    try {
+      await fetch('/api/messages/reactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId, userId: currentUserId, emoji }),
       });
-    }
-    setReactions((prev) => {
-      const msgReactions = prev[messageId] || [];
-      const existing = msgReactions.find((r) => r.emoji === emoji);
-      if (existing) {
-        if (!existing.userIds.includes(currentUserId))
-          existing.userIds.push(currentUserId);
-      } else {
-        msgReactions.push({ emoji, userIds: [currentUserId] });
+      if (currentChannelId) {
+        socket.emit('addReaction', {
+          messageId,
+          emoji,
+          userId: currentUserId,
+          channelId: currentChannelId,
+        });
       }
-      return { ...prev, [messageId]: [...msgReactions] };
-    });
+      setReactions((prev) => {
+        const msgReactions = prev[messageId] || [];
+        const existing = msgReactions.find((r) => r.emoji === emoji);
+        if (existing) {
+          if (!existing.userIds.includes(currentUserId))
+            existing.userIds.push(currentUserId);
+        } else {
+          msgReactions.push({ emoji, userIds: [currentUserId] });
+        }
+        return { ...prev, [messageId]: [...msgReactions] };
+      });
+    } catch (error) {
+      logError('Error adding reaction', error);
+    }
   };
 
   const handleRemoveReaction = async (messageId: string, emoji: string) => {
-    await fetch('/api/messages/reactions', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messageId, userId: currentUserId, emoji }),
-    });
-    if (currentChannelId) {
-      socket.emit('removeReaction', {
-        messageId,
-        emoji,
-        userId: currentUserId,
-        channelId: currentChannelId,
+    try {
+      await fetch('/api/messages/reactions', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messageId, userId: currentUserId, emoji }),
       });
-    }
-    setReactions((prev) => {
-      const msgReactions = prev[messageId] || [];
-      const idx = msgReactions.findIndex((r) => r.emoji === emoji);
-      if (idx !== -1 && msgReactions[idx]) {
-        msgReactions[idx].userIds = (msgReactions[idx].userIds || []).filter(
-          (id) => id !== currentUserId,
-        );
-        if (msgReactions[idx].userIds.length === 0) msgReactions.splice(idx, 1);
+      if (currentChannelId) {
+        socket.emit('removeReaction', {
+          messageId,
+          emoji,
+          userId: currentUserId,
+          channelId: currentChannelId,
+        });
       }
-      return { ...prev, [messageId]: [...msgReactions] };
-    });
+      setReactions((prev) => {
+        const msgReactions = prev[messageId] || [];
+        const idx = msgReactions.findIndex((r) => r.emoji === emoji);
+        if (idx !== -1 && msgReactions[idx]) {
+          msgReactions[idx].userIds = (msgReactions[idx].userIds || []).filter(
+            (id) => id !== currentUserId,
+          );
+          if (msgReactions[idx].userIds.length === 0)
+            msgReactions.splice(idx, 1);
+        }
+        return { ...prev, [messageId]: [...msgReactions] };
+      });
+    } catch (error) {
+      logError('Error removing reaction', error);
+    }
   };
 
   // Fetch older messages (top)
@@ -220,7 +230,7 @@ const Messages = (props: {
         if (onDelete) onDelete(id);
       }
     } catch (error) {
-      // Do nothing
+      logError('Error deleting message', error);
     }
   };
 

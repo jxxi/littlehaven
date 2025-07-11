@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { TAG_METADATA } from '@/constants/tags';
 import type { Circle } from '@/types/Circle';
 import type { CircleMember } from '@/types/CircleMember';
+import { logError } from '@/utils/Logger';
 
 interface CircleSelectionModalProps {
   onSubmitSuccess?: () => void;
@@ -52,7 +53,7 @@ const CircleSelectionModal: React.FC<CircleSelectionModalProps> = ({
         const data = await response.json();
         setCircles(Array.isArray(data) ? data : []);
       } catch (error) {
-        //
+        logError('Error in CircleSelectionModal feature', error);
         setCircles([]);
       }
     };
@@ -123,7 +124,7 @@ const CircleSelectionModal: React.FC<CircleSelectionModalProps> = ({
         router.push('/dashboard');
       }
     } catch (error) {
-      //
+      logError('Error in CircleSelectionModal feature', error);
     }
   };
 

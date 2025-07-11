@@ -1,6 +1,8 @@
 import { clerkClient } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
+import { logError } from '@/utils/Logger';
+
 export async function updateUserMetadata(id: string, circles: string[]) {
   const client = await clerkClient();
 
@@ -28,6 +30,7 @@ export async function getUserInfoFromIds(ids: string[]) {
       imageUrl: user.imageUrl,
     }));
   } catch (error) {
+    logError('Error in getUserInfoFromIds', error);
     throw new Error('Failed to fetch user info');
   }
 }

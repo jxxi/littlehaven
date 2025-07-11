@@ -9,6 +9,7 @@ import {
 } from '@/models/Schema';
 import type { CircleMember } from '@/types/CircleMember';
 import { getUserInfoFromIds } from '@/utils/clerk/operations';
+import { logError } from '@/utils/Logger';
 
 // Create a new circle member
 export async function createCircleMember(member: CircleMember) {
@@ -16,6 +17,7 @@ export async function createCircleMember(member: CircleMember) {
     const newMember = await db.insert(circleMembersSchema).values(member);
     return newMember; // Return the newly created member
   } catch (error) {
+    logError('Error in createCircleMember', error);
     throw new Error('Failed to create circle member');
   }
 }
@@ -26,6 +28,7 @@ export async function createCircleMembers(members: CircleMember[]) {
     const newMembers = await db.insert(circleMembersSchema).values(members);
     return newMembers;
   } catch (error) {
+    logError('Error in createCircleMembers', error);
     throw new Error('Failed to create circle members');
   }
 }
@@ -50,6 +53,7 @@ export async function updateCircleMember(
       .returning();
     return updatedMember; // Return the updated member
   } catch (error) {
+    logError('Error in updateCircleMember', error);
     throw new Error('Failed to update circle member');
   }
 }
@@ -64,6 +68,7 @@ export async function deleteCircleMember(circleId: string, userId: string) {
       .returning();
     return deletedMember; // Return the deleted member
   } catch (error) {
+    logError('Error in deleteCircleMember', error);
     throw new Error('Failed to delete circle member');
   }
 }
@@ -76,6 +81,7 @@ export async function getAllMembersForCircle(circleId: string) {
     });
     return members; // Return the list of members
   } catch (error) {
+    logError('Error in getAllMembersForCircle', error);
     throw new Error('Failed to fetch members for circle');
   }
 }
@@ -116,6 +122,7 @@ export async function getMemberByCircleIdAndUserId(
     });
     return member || null; // Return null if no member is found
   } catch (error) {
+    logError('Error in getMemberByCircleIdAndUserId', error);
     throw new Error('Failed to fetch member');
   }
 }
@@ -134,6 +141,7 @@ export async function createMemberRole(
     });
     return newMemberRole; // Return the newly created member role
   } catch (error) {
+    logError('Error in createMemberRole', error);
     throw new Error('Failed to create member role');
   }
 }
@@ -153,6 +161,7 @@ export async function updateMemberRole(
       .returning();
     return updatedMemberRole; // Return the updated member role
   } catch (error) {
+    logError('Error in updateMemberRole', error);
     throw new Error('Failed to update member role');
   }
 }
@@ -167,6 +176,7 @@ export async function deleteMemberRole(circleId: string, userId: string) {
       .returning();
     return deletedMemberRole; // Return the deleted member role
   } catch (error) {
+    logError('Error in deleteMemberRole', error);
     throw new Error('Failed to delete member role');
   }
 }
@@ -185,6 +195,7 @@ export async function getRolesForUserInCircle(
     });
     return roles; // Return the list of roles
   } catch (error) {
+    logError('Error in getRolesForUserInCircle', error);
     throw new Error('Failed to fetch roles for user in circle');
   }
 }
@@ -210,6 +221,7 @@ export async function createInvite(
     });
     return newInvite; // Return the newly created invite
   } catch (error) {
+    logError('Error in createInvite', error);
     throw new Error('Failed to create invite');
   }
 }
@@ -232,6 +244,7 @@ export async function updateInvite(
       .returning();
     return updatedInvite; // Return the updated invite
   } catch (error) {
+    logError('Error in updateInvite', error);
     throw new Error('Failed to update invite');
   }
 }
@@ -245,6 +258,7 @@ export async function deleteInvite(inviteCode: string) {
       .returning();
     return deletedInvite; // Return the deleted invite
   } catch (error) {
+    logError('Error in deleteInvite', error);
     throw new Error('Failed to delete invite');
   }
 }
@@ -257,6 +271,7 @@ export async function getAllInvitesForCircle(circleId: string) {
     });
     return invites; // Return the list of invites
   } catch (error) {
+    logError('Error in getAllInvitesForCircle', error);
     throw new Error('Failed to fetch invites for circle');
   }
 }

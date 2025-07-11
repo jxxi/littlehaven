@@ -13,6 +13,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { Circle } from '@/features/circle/types';
+import { logError } from '@/utils/Logger';
 
 export default function SearchPage() {
   const { user } = useUser();
@@ -29,6 +30,7 @@ export default function SearchPage() {
         const data = await response.json();
         setCircles(Array.isArray(data) ? data : []);
       } catch (error) {
+        logError('Error in search page - fetchCircles', error);
         setCircles([]);
       } finally {
         setLoading(false);
@@ -45,6 +47,7 @@ export default function SearchPage() {
         );
         setJoinedCircles(joinedCircleIds);
       } catch (error) {
+        logError('Error in search page - fetchJoinedCircles', error);
         setJoinedCircles(new Set());
       }
     };
@@ -74,6 +77,7 @@ export default function SearchPage() {
         setJoinedCircles((prev) => new Set([...prev, circleId]));
       }
     } catch (error) {
+      logError('Error in search page - handleJoinCircle', error);
       // Handle error
     } finally {
       setLoading(false);
