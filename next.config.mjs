@@ -22,7 +22,16 @@ const nextConfig = {
     styledComponents: true,
   },
   images: {
-    domains: ['media.tenor.com', 'img.clerk.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'media.tenor.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.clerk.com',
+      },
+    ],
   },
   eslint: {
     dirs: ['.'],
@@ -32,44 +41,49 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@electric-sql/pglite'],
   },
-};
+  webpack: (config, { dev, isServer }) => {
+    // Optimize webpack cache for large strings
+    if (dev) {
+      config.cache = {
+        ...config.cache,
+        compression: 'gzip',
+        maxMemoryGenerations: 1,
+        // Reduce cache size to avoid serialization issues
+        maxAge: 1000 * 60 * 60 * 24, // 24 hours
+      };
 
-const moduleExports = {
-  // ...your existing config
+      // Optimize for development performance
+      config.optimization = {
+        ...config.optimization,
+        removeAvailableModules: false,
+        removeEmptyChunks: false,
+        splitChunks: false,
+      };
+    }
+
+    // Optimize module resolution for locale files
+    config.module.rules.push({
+      test: /\.json$/,
+      type: 'json',
+      include: /locales/,
+    });
+
+    return config;
+  },
 };
 
 const sentryWebpackPluginOptions = {
   silent: true,
+  org: 'little-haven',
+  project: 'javascript-nextjs',
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  tunnelRoute: '/monitoring',
+  disableLogger: true,
+  automaticVercelMonitors: true,
 };
 
-export default withSentryConfig(withSentryConfig(moduleExports, sentryWebpackPluginOptions), {
-// For all available options, see:
-// https://www.npmjs.com/package/@sentry/webpack-plugin#options
-
-org: "little-haven",
-project: "javascript-nextjs",
-
-// Only print logs for uploading source maps in CI
-silent: !process.env.CI,
-
-// For all available options, see:
-// https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-
-// Upload a larger set of source maps for prettier stack traces (increases build time)
-widenClientFileUpload: true,
-
-// Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-// This can increase your server load as well as your hosting bill.
-// Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
-// side errors will fail.
-tunnelRoute: "/monitoring",
-
-// Automatically tree-shake Sentry logger statements to reduce bundle size
-disableLogger: true,
-
-// Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
-// See the following for more information:
-// https://docs.sentry.io/product/crons/
-// https://vercel.com/docs/cron-jobs
-automaticVercelMonitors: true,
-});
+export default withSentryConfig(
+  withNextIntlConfig(bundleAnalyzer(nextConfig)),
+  sentryWebpackPluginOptions,
+);

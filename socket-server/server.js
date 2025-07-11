@@ -1,15 +1,17 @@
+/* eslint-disable no-console */
 const Sentry = require('@sentry/node');
 
 // Initialize Sentry with error handling
 try {
+  console.log('Initializing Sentry');
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV,
     tracesSampleRate: 1.0,
   });
 } catch (error) {
-  // eslint-disable-next-line no-console
   console.error('Failed to initialize Sentry:', error);
+  Sentry.captureException(error);
 }
 
 const { Server } = require('socket.io');
