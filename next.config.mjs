@@ -41,9 +41,12 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@electric-sql/pglite'],
   },
-  webpack: (config, { dev, isServer }) => {
-    // Optimize webpack cache for large strings
+  webpack: (config, { dev }) => {
+    // Configure source maps
     if (dev) {
+      config.devtool = 'eval-source-map';
+
+      // Optimize webpack cache for large strings
       config.cache = {
         ...config.cache,
         compression: 'gzip',
@@ -68,15 +71,21 @@ const nextConfig = {
       include: /locales/,
     });
 
+    // Ignore source map warnings for dynamic files
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      /Could not auto-detect referenced sourcemap/,
+      /Failed to parse source map/,
+    ];
+
     return config;
   },
 };
 
 const sentryWebpackPluginOptions = {
-  silent: true,
+  silent: !process.env.CI,
   org: 'little-haven',
   project: 'javascript-nextjs',
-  silent: !process.env.CI,
   widenClientFileUpload: true,
   tunnelRoute: '/monitoring',
   disableLogger: true,

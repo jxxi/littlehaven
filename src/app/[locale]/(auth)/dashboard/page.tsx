@@ -8,6 +8,7 @@ import BrandLoader from '@/components/BrandLoader';
 import type { Circle } from '@/features/circle/types';
 import { UserCircleList } from '@/features/circle/UserCircleList';
 import { ChatPanel } from '@/features/dashboard/ChatPanel';
+import { Env } from '@/libs/Env';
 import { logError } from '@/utils/Logger';
 
 const DashboardIndexPage = () => {
@@ -74,8 +75,17 @@ const DashboardIndexPage = () => {
   useEffect((): (() => void) => {
     if (!user) return () => {};
 
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+    // Check if Pusher is configured
+    if (!Env.NEXT_PUBLIC_PUSHER_KEY || !Env.NEXT_PUBLIC_PUSHER_CLUSTER) {
+      logError('Pusher configuration missing', {
+        key: !!Env.NEXT_PUBLIC_PUSHER_KEY,
+        cluster: !!Env.NEXT_PUBLIC_PUSHER_CLUSTER,
+      });
+      return () => {};
+    }
+
+    const pusher = new Pusher(Env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: Env.NEXT_PUBLIC_PUSHER_CLUSTER,
     });
 
     circles.forEach((circle) => {
