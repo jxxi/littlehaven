@@ -242,65 +242,94 @@ export async function getAllMessagesWithReactionsForChannel(
   channelId: string,
   options?: { before?: string; after?: string; limit?: number },
 ) {
-  const { before, after, limit = 50 } = options || {};
-  // Build where clause
-  const where = [eq(messagesSchema.channelId, channelId)];
-  let order = desc(messagesSchema.createdAt);
-  let reverse = true;
-  if (after) {
-    where.push(gt(messagesSchema.createdAt, new Date(after)));
-    order = asc(messagesSchema.createdAt);
-    reverse = false;
-  } else if (before) {
-    where.push(lt(messagesSchema.createdAt, new Date(before)));
-    order = desc(messagesSchema.createdAt);
-    reverse = true;
-  }
-  // Join messages and reactions
-  const rows = await db
-    .select({
-      ...messagesSchema,
-      reactionUserId: reactionsSchema.userId,
-      reactionEmoji: reactionsSchema.emoji,
-    })
-    .from(messagesSchema)
-    .leftJoin(
-      reactionsSchema,
-      eq(messagesSchema.messageId, reactionsSchema.messageId),
-    )
-    .where(where.length > 1 ? { and: where } : where[0])
-    .orderBy(order)
-    .limit(limit);
+  try {
+    const { before, after, limit = 50 } = options || {};
+    console.log('getAllMessagesWithReactionsForChannel called with:', {
+      channelId,
+      before,
+      after,
+      limit,
+    });
 
-  // Group by message, then group reactions by emoji
-  const messageMap = new Map();
-  for (const row of rows) {
-    const msgId = row.messageId;
-    if (!messageMap.has(msgId)) {
-      messageMap.set(msgId, {
-        ...row,
-        reactions: {},
-      });
+    // Build where clause
+    const where = [eq(messagesSchema.channelId, channelId)];
+    let order = desc(messagesSchema.createdAt);
+    let reverse = true;
+
+    if (after) {
+      console.log('Adding after filter:', after);
+      where.push(gt(messagesSchema.createdAt, new Date(after)));
+      order = asc(messagesSchema.createdAt);
+      reverse = false;
+    } else if (before) {
+      console.log('Adding before filter:', before);
+      where.push(lt(messagesSchema.createdAt, new Date(before)));
+      order = desc(messagesSchema.createdAt);
+      reverse = true;
     }
-    if (row.reactionEmoji && row.reactionUserId) {
-      const msg = messageMap.get(msgId);
-      if (!msg.reactions[row.reactionEmoji]) {
-        msg.reactions[row.reactionEmoji] = [];
+
+    console.log('Executing database query...');
+
+    // Join messages and reactions
+    const rows = await db
+      .select({
+        ...messagesSchema,
+        reactionUserId: reactionsSchema.userId,
+        reactionEmoji: reactionsSchema.emoji,
+      })
+      .from(messagesSchema)
+      .leftJoin(
+        reactionsSchema,
+        eq(messagesSchema.messageId, reactionsSchema.messageId),
+      )
+      .where(where.length > 1 ? { and: where } : where[0])
+      .orderBy(order)
+      .limit(limit);
+
+    console.log('Database query completed, rows returned:', rows.length);
+
+    // Group by message, then group reactions by emoji
+    const messageMap = new Map();
+    for (const row of rows) {
+      const msgId = row.messageId;
+      if (!messageMap.has(msgId)) {
+        messageMap.set(msgId, {
+          ...row,
+          reactions: {},
+        });
       }
-      msg.reactions[row.reactionEmoji].push(row.reactionUserId);
+      if (row.reactionEmoji && row.reactionUserId) {
+        const msg = messageMap.get(msgId);
+        if (!msg.reactions[row.reactionEmoji]) {
+          msg.reactions[row.reactionEmoji] = [];
+        }
+        msg.reactions[row.reactionEmoji].push(row.reactionUserId);
+      }
     }
+
+    // Convert reactions object to array
+    let result = Array.from(messageMap.values()).map((msg) => ({
+      ...msg,
+      reactions: Object.entries(msg.reactions).map(([emoji, userIds]) => ({
+        emoji,
+        userIds,
+      })),
+    }));
+    if (reverse) result = result.reverse();
+
+    console.log('Processing user data for messages...');
+    result = await getMessagesWithUsers(result);
+    console.log('Successfully processed messages with users:', result.length);
+
+    return result;
+  } catch (error) {
+    console.error('Error in getAllMessagesWithReactionsForChannel:', {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+      channelId,
+      options,
+    });
+    logError('Error in getAllMessagesWithReactionsForChannel', error);
+    throw new Error('Failed to fetch messages for channel');
   }
-
-  // Convert reactions object to array
-  let result = Array.from(messageMap.values()).map((msg) => ({
-    ...msg,
-    reactions: Object.entries(msg.reactions).map(([emoji, userIds]) => ({
-      emoji,
-      userIds,
-    })),
-  }));
-  if (reverse) result = result.reverse();
-
-  result = await getMessagesWithUsers(result);
-  return result;
 }

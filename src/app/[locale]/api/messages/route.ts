@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { type NextRequest, NextResponse } from 'next/server';
 
 import { logError } from '@/utils/Logger';
@@ -25,20 +26,44 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    console.log('Fetching messages for:', {
+      circleId,
+      channelId,
+      before,
+      after,
+      limit,
+    });
+
     let messagesWithReactions;
     if (after) {
+      console.log('Using after parameter:', after);
       messagesWithReactions = await getAllMessagesWithReactionsForChannel(
         channelId,
         { after: after || undefined, limit },
       );
     } else {
+      console.log('Using before parameter:', before);
       messagesWithReactions = await getAllMessagesWithReactionsForChannel(
         channelId,
         { before: before || undefined, limit },
       );
     }
+
+    console.log(
+      'Successfully fetched messages:',
+      messagesWithReactions?.length || 0,
+    );
     return NextResponse.json(messagesWithReactions);
   } catch (error) {
+    console.error('Detailed error in messages API route:', {
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+      circleId,
+      channelId,
+      before,
+      after,
+      limit,
+    });
     logError('Error in messages API route', error);
     return NextResponse.json(
       { error: 'Failed to fetch messages' },
