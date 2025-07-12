@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { clerkClient } from '@clerk/nextjs/server';
 import { asc, desc, eq, gt, lt } from 'drizzle-orm';
 
