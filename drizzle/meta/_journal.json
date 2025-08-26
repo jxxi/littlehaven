@@ -15,6 +15,20 @@
       "when": 1747430436378,
       "tag": "0001_yellow_red_shift",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1753983237504,
+      "tag": "0002_dear_franklin_richards",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1755901411246,
+      "tag": "0003_broken_kitty_pryde",
+      "breakpoints": true
     }
   ]
 }

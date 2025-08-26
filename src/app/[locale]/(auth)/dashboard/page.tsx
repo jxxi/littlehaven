@@ -148,27 +148,32 @@ const DashboardIndexPage = () => {
     });
   };
 
+  const renderSidebarContent = () => {
+    if (loading) return <BrandLoader />;
+    if (circles.length > 0) {
+      return (
+        <UserCircleList
+          circles={circles}
+          currentCircleId={activeCircleId}
+          currentChannelId={activeChannelId}
+          unreadCircles={unreadCircles}
+          unreadChannels={unreadChannels}
+          handleCircleClick={handleCircleClick}
+          handleChannelClick={handleChannelClick}
+        />
+      );
+    }
+    return (
+      <div className="p-4 text-center text-gray-400">No circles available</div>
+    );
+  };
+
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 p-6">
       <div className="flex h-[96vh] w-[98vw] max-w-[1800px] overflow-hidden rounded-2xl bg-cream shadow-2xl">
         {/* Sidebar */}
         <div className="flex h-full w-72 flex-col border-r border-warmth-orange bg-cream p-6">
-          {loading && <BrandLoader />}
-          {circles.length > 0 && !loading ? (
-            <UserCircleList
-              circles={circles}
-              currentCircleId={activeCircleId}
-              currentChannelId={activeChannelId}
-              unreadCircles={unreadCircles}
-              unreadChannels={unreadChannels}
-              handleCircleClick={handleCircleClick}
-              handleChannelClick={handleChannelClick}
-            />
-          ) : (
-            <div className="p-4 text-center text-gray-400">
-              No circles available
-            </div>
-          )}
+          {renderSidebarContent()}
         </div>
         {/* Chat Panel */}
         <div className="flex h-full flex-1 flex-col bg-white/70 p-8">

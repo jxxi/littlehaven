@@ -21,3 +21,6 @@ export default function RootLayout({
     </html>
   );
 }
+
+// Force Node.js runtime to avoid Edge Runtime issues
+export const runtime = 'nodejs';

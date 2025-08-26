@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 import BrandLoader from '@/components/BrandLoader';
 import { GifIcon } from '@/components/icons/GifIcon';
+import { useEncryption } from '@/hooks/useEncryption';
+import { clientLogger } from '@/libs/ClientLogger';
 import { logError } from '@/utils/Logger';
 import { getSocket } from '@/utils/socket';
 
@@ -49,6 +51,14 @@ const ChatPanel = ({
   const replyTo = currentChannelId
     ? (replyToMap[currentChannelId] ?? null)
     : null;
+
+  // Initialize encryption for the current channel
+  const { encrypt, needsRotation, rotateKey } = useEncryption(currentChannelId);
+
+  // Update socket events to include userId
+  useEffect(() => {
+    // You can add key rotation handling here if needed
+  }, [currentChannelId, userId, rotateKey]);
 
   useEffect(() => {
     // Join the channel room when component mounts
@@ -131,11 +141,57 @@ const ChatPanel = ({
     }
 
     const tempId = uuidv4();
+
+    // Encrypt message content if encryption is available
+    let encryptedContent: string | undefined;
+    let encryptionKeyId: string | undefined;
+    let isEncrypted = false;
+
+    if (encrypt) {
+      try {
+        const encrypted = await encrypt(message);
+        if (encrypted) {
+          encryptedContent = encrypted.encryptedContent;
+          encryptionKeyId = encrypted.keyId;
+          isEncrypted = true;
+        }
+      } catch (error) {
+        logError('Failed to encrypt message', error);
+
+        // Check if it's a key rotation error
+        if (
+          error instanceof Error &&
+          error.message.includes('needs rotation')
+        ) {
+          try {
+            clientLogger.info('Attempting automatic key rotation...');
+            await rotateKey(currentChannelId!);
+
+            // Retry encryption with new key
+            const encrypted = await encrypt(message);
+            if (encrypted) {
+              encryptedContent = encrypted.encryptedContent;
+              encryptionKeyId = encrypted.keyId;
+              isEncrypted = true;
+            }
+          } catch (rotationError) {
+            logError('Failed to rotate key', rotationError);
+            // Continue with unencrypted message
+          }
+        } else {
+          // Continue with unencrypted message
+        }
+      }
+    }
+
     const tempMessage = {
       circleId: currentCircleId!,
       channelId: currentChannelId!,
       userId,
-      content: message,
+      content: isEncrypted ? '[Encrypted]' : message,
+      encryptedContent,
+      encryptionKeyId,
+      isEncrypted,
       isTts: false,
       replyToMessageId: replyTo?.id,
       id: `temp-${tempId}`,
@@ -314,6 +370,22 @@ const ChatPanel = ({
           <div className="absolute inset-x-0 bottom-0 flex items-center space-x-2 rounded-md border-t-2 border-growth-green bg-white p-4">
             <UserButton />
 
+            {/* Key rotation warning */}
+            {needsRotation && (
+              <div className="absolute inset-x-0 -top-12 mx-4 rounded-md border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs text-yellow-800">
+                <div className="flex items-center justify-between">
+                  <span>🔐 Encryption key needs rotation</span>
+                  <button
+                    type="button"
+                    onClick={() => rotateKey(currentChannelId!)}
+                    className="text-yellow-600 underline hover:text-yellow-800"
+                  >
+                    Rotate Now
+                  </button>
+                </div>
+              </div>
+            )}
+
             <input
               type="text"
               value={message}
@@ -367,6 +439,7 @@ const ChatPanel = ({
               /* handle member click */
             }}
             onClose={() => setOpenPanel(null)}
+            currentChannelId={currentChannelId}
           />
         </div>
       )}

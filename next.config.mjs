@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable import/no-extraneous-dependencies, import/extensions */
 import { fileURLToPath } from 'node:url';
 
@@ -63,6 +64,15 @@ const nextConfig = {
         splitChunks: false,
       };
     }
+
+    // Handle Node.js modules that don't exist in Edge Runtime
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      worker_threads: false,
+      fs: false,
+      net: false,
+      tls: false,
+    };
 
     // Optimize module resolution for locale files
     config.module.rules.push({

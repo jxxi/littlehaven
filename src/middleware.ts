@@ -1,5 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { type NextFetchEvent, type NextRequest } from 'next/server';
+import type { NextFetchEvent, NextRequest } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 
 import { AllLocales, AppConfig } from './utils/AppConfig';
@@ -15,6 +15,7 @@ const isProtectedRoute = createRouteMatcher([
   '/:locale/dashboard(.*)',
   '/onboarding(.*)',
   '/:locale/onboarding(.*)',
+  '/api(.*)',
 ]);
 
 export default function middleware(
@@ -56,3 +57,6 @@ export default function middleware(
 export const config = {
   matcher: ['/((?!.+\\.[\\w]+$|_next|monitoring).*)', '/', '/(api|trpc)(.*)'], // Also exclude tunnelRoute used in Sentry from the matcher
 };
+
+// Force Node.js runtime for Clerk middleware
+export const runtime = 'nodejs';

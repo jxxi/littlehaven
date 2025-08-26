@@ -1,20 +1,84 @@
 import Image from 'next/image';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-export function SearchSidebar({ members, messages, onMemberClick, onClose }) {
+import { useEncryption } from '@/hooks/useEncryption';
+import { clientLogger } from '@/libs/ClientLogger';
+
+export function SearchSidebar({
+  members,
+  messages,
+  onMemberClick,
+  onClose,
+  currentChannelId,
+}) {
   const [search, setSearch] = useState('');
+  const [decryptedMessages, setDecryptedMessages] = useState<
+    Record<string, string>
+  >({});
+
+  // Get encryption hook for decryption
+  const { decrypt } = useEncryption(currentChannelId);
+
+  // Decrypt encrypted messages
+  const decryptMessage = useCallback(
+    async (message) => {
+      if (
+        !message.isEncrypted ||
+        !message.encryptedContent ||
+        !message.encryptionIv ||
+        !decrypt
+      ) {
+        return;
+      }
+
+      try {
+        const decryptedContent = await decrypt(
+          message.encryptedContent,
+          message.encryptionIv,
+        );
+        if (decryptedContent) {
+          setDecryptedMessages((prev) => ({
+            ...prev,
+            [message.id]: decryptedContent,
+          }));
+        }
+      } catch (error) {
+        clientLogger.error('Failed to decrypt message in search', error);
+        setDecryptedMessages((prev) => ({
+          ...prev,
+          [message.id]: '[Decryption Failed]',
+        }));
+      }
+    },
+    [decrypt],
+  );
+
+  // Decrypt messages when they're loaded
+  useEffect(() => {
+    const encryptedMessages = messages.filter(
+      (msg) => msg.isEncrypted && msg.encryptedContent && msg.encryptionIv,
+    );
+    encryptedMessages.forEach(decryptMessage);
+  }, [messages, decryptMessage]);
+
   const filteredMembers = search
     ? members.filter((m) =>
         m.username.toLowerCase().includes(search.toLowerCase()),
       )
     : [];
   const filteredMessages = search
-    ? messages.filter(
-        (msg) =>
-          msg.content.toLowerCase().includes(search.toLowerCase()) ||
+    ? messages.filter((msg) => {
+        const contentToSearch =
+          msg.isEncrypted && msg.encryptedContent && msg.encryptionIv
+            ? decryptedMessages[msg.id] || '[Encrypted]'
+            : msg.content;
+
+        return (
+          contentToSearch.toLowerCase().includes(search.toLowerCase()) ||
           (msg.user?.username?.toLowerCase().includes(search.toLowerCase()) ??
-            false),
-      )
+            false)
+        );
+      })
     : [];
 
   return (
@@ -77,7 +141,9 @@ export function SearchSidebar({ members, messages, onMemberClick, onClose }) {
                     <span className="font-semibold">
                       {msg.user?.username ?? 'Unknown'}:
                     </span>{' '}
-                    {msg.content}
+                    {msg.isEncrypted && msg.encryptedContent && msg.encryptionIv
+                      ? decryptedMessages[msg.id] || '[Encrypted]'
+                      : msg.content}
                   </li>
                 ))}
               </ul>

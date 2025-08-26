@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@clerk/localizations": "^2.5.1",
-    "@clerk/nextjs": "^6.24.0",
+    "@clerk/nextjs": "^6.31.4",
     "@electric-sql/pglite": "^0.1.5",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
@@ -48,7 +48,9 @@
     "@supabase/ssr": "^0.5.2",
     "@t3-oss/env-nextjs": "^0.11.0",
     "@tanstack/react-table": "^8.19.3",
+    "@upstash/redis": "^1.35.3",
     "@vercel/blob": "^0.27.1",
+    "@vercel/kv": "^3.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",

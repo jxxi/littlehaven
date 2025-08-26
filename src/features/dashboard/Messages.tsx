@@ -4,8 +4,9 @@ import { FixedSizeList as List } from 'react-window';
 
 import BrandLoader from '@/components/BrandLoader';
 import ChatUser from '@/components/ChatUser';
+import { useEncryption } from '@/hooks/useEncryption';
+import { clientLogger } from '@/libs/ClientLogger';
 import { formatDate } from '@/utils/Helpers';
-import { logError } from '@/utils/Logger';
 import { getSocket } from '@/utils/socket';
 
 import type { Message } from '../../types/message';
@@ -46,6 +47,55 @@ const Messages = (props: {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  // Get encryption hook for decryption
+  const { decrypt } = useEncryption(currentChannelId);
+  const [decryptedMessages, setDecryptedMessages] = useState<
+    Record<string, string>
+  >({});
+
+  // Decrypt encrypted messages
+  const decryptMessage = useCallback(
+    async (message: Message) => {
+      if (
+        !message.isEncrypted ||
+        !message.encryptedContent ||
+        !message.encryptionIv ||
+        !decrypt
+      ) {
+        return;
+      }
+
+      try {
+        const decryptedContent = await decrypt(
+          message.encryptedContent,
+          message.encryptionIv,
+        );
+        if (decryptedContent) {
+          setDecryptedMessages((prev) => ({
+            ...prev,
+            [message.id]: decryptedContent,
+          }));
+        }
+      } catch (error) {
+        clientLogger.error('Failed to decrypt message', error);
+        // Show encrypted indicator if decryption fails
+        setDecryptedMessages((prev) => ({
+          ...prev,
+          [message.id]: '[Decryption Failed]',
+        }));
+      }
+    },
+    [decrypt],
+  );
+
+  // Decrypt messages when they're loaded
+  useEffect(() => {
+    const encryptedMessages = messages.filter(
+      (msg) => msg.isEncrypted && msg.encryptedContent && msg.encryptionIv,
+    );
+    encryptedMessages.forEach(decryptMessage);
+  }, [messages, decryptMessage]);
 
   useEffect(() => {
     setAllMessages(messages);
@@ -109,7 +159,7 @@ const Messages = (props: {
         return { ...prev, [messageId]: [...msgReactions] };
       });
     } catch (error) {
-      logError('Error adding reaction', error);
+      clientLogger.error('Error adding reaction', error);
     }
   };
 
@@ -141,7 +191,7 @@ const Messages = (props: {
         return { ...prev, [messageId]: [...msgReactions] };
       });
     } catch (error) {
-      logError('Error removing reaction', error);
+      clientLogger.error('Error removing reaction', error);
     }
   };
 
@@ -230,7 +280,7 @@ const Messages = (props: {
         if (onDelete) onDelete(id);
       }
     } catch (error) {
-      logError('Error deleting message', error);
+      clientLogger.error('Error deleting message', error);
     }
   };
 
@@ -303,6 +353,9 @@ const Messages = (props: {
     const replyMsg =
       message.replyToMessageId && replyLookup?.get(message.replyToMessageId);
     const msgReactions = reactions[message.id] || [];
+    const decryptedContent = decryptedMessages[message.id];
+    const contentToDisplay = decryptedContent || message.content;
+
     return (
       <div style={style}>
         <div className="group flex flex-col items-start rounded-lg bg-white p-3 shadow-md">
@@ -312,7 +365,16 @@ const Messages = (props: {
                 <span className="font-semibold">
                   Replying to {replyMsg.user?.username || 'user'}:
                 </span>{' '}
-                {replyMsg.content}
+                {replyMsg.isEncrypted &&
+                replyMsg.encryptedContent &&
+                replyMsg.encryptionIv
+                  ? decryptedMessages[replyMsg.id] || '[Encrypted]'
+                  : replyMsg.content}
+                {replyMsg.isEncrypted &&
+                replyMsg.encryptedContent &&
+                replyMsg.encryptionIv
+                  ? decryptedMessages[replyMsg.id] || '[Encrypted]'
+                  : replyMsg.content}
               </div>
             )}
             {message.user && (
@@ -363,7 +425,7 @@ const Messages = (props: {
                 </button>
               </div>
             ) : (
-              <span className="mt-1 text-gray-800">{message.content}</span>
+              <span className="mt-1 text-gray-800">{contentToDisplay}</span>
             )}
           </div>
           {/* Reactions display */}

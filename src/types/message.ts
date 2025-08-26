@@ -4,6 +4,10 @@ export interface Message {
   channelId: string;
   userId: string;
   content: string;
+  encryptedContent?: string | null;
+  encryptionKeyId?: string | null;
+  encryptionIv?: string | null; // IV for AES-GCM decryption
+  isEncrypted?: boolean;
   isTts?: boolean;
   mediaUrl?: string | null;
   mediaType?: string | null;

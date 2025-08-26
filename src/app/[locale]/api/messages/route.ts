@@ -8,6 +8,9 @@ import {
   updateMessage,
 } from '@/utils/message/operations';
 
+// Force Node.js runtime to avoid Edge Runtime issues
+export const runtime = 'nodejs';
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const circleId = searchParams.get('circleId');
@@ -75,7 +78,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { circleId, channelId, userId, content } = body;
+    const {
+      circleId,
+      channelId,
+      userId,
+      content,
+      encryptedContent,
+      encryptionKeyId,
+      encryptionIv,
+      isEncrypted,
+    } = body;
 
     if (!circleId || !userId || !channelId) {
       return NextResponse.json(
@@ -84,7 +96,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const message = await createMessage(circleId, channelId, userId, content);
+    const message = await createMessage(
+      circleId,
+      channelId,
+      userId,
+      content,
+      undefined, // mediaUrl
+      undefined, // mediaType
+      undefined, // thumbnailUrl
+      undefined, // isTts
+      undefined, // replyToMessageId
+      encryptedContent,
+      encryptionKeyId,
+      encryptionIv,
+      isEncrypted,
+    );
 
     return NextResponse.json(message);
   } catch (error) {

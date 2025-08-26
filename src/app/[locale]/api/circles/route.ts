@@ -10,6 +10,9 @@ import {
 } from '@/utils/circle/operations';
 import { logError } from '@/utils/Logger';
 
+// Force Node.js runtime to avoid Edge Runtime issues
+export const runtime = 'nodejs';
+
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const { searchParams } = url;

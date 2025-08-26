@@ -138,6 +138,62 @@ io.on('connection', (socket) => {
     }
   });
 
+  // --- Encryption events ---
+  socket.on('shareEncryptionKey', (data) => {
+    try {
+      // Share key with all users in the channel
+      io.to(data.channelId).emit('encryptionKeyShared', {
+        channelId: data.channelId,
+        keyData: data.keyData,
+        sharedBy: data.userId,
+        timestamp: new Date().toISOString(),
+      });
+      console.log(`Encryption key shared in channel: ${data.channelId}`);
+    } catch (err) {
+      console.error('Error in shareEncryptionKey:', err);
+      if (sentryInitialized && Sentry && Sentry.captureException) {
+        Sentry.captureException(err);
+      }
+    }
+  });
+
+  socket.on('keyRotationStarted', (data) => {
+    try {
+      // Notify all users in channel about key rotation
+      io.to(data.channelId).emit('keyRotationNotification', {
+        channelId: data.channelId,
+        rotatedBy: data.userId,
+        timestamp: new Date().toISOString(),
+        message: 'Encryption key has been rotated',
+      });
+      console.log(`Key rotation started in channel: ${data.channelId}`);
+    } catch (err) {
+      console.error('Error in keyRotationStarted:', err);
+      if (sentryInitialized && Sentry && Sentry.captureException) {
+        Sentry.captureException(err);
+      }
+    }
+  });
+
+  socket.on('keyRotationCompleted', (data) => {
+    try {
+      // Notify all users that key rotation is complete
+      io.to(data.channelId).emit('keyRotationComplete', {
+        channelId: data.channelId,
+        completedBy: data.userId,
+        timestamp: new Date().toISOString(),
+        newKeyId: data.newKeyId,
+        messagesReEncrypted: data.messagesReEncrypted,
+      });
+      console.log(`Key rotation completed in channel: ${data.channelId}`);
+    } catch (err) {
+      console.error('Error in keyRotationCompleted:', err);
+      if (sentryInitialized && Sentry && Sentry.captureException) {
+        Sentry.captureException(err);
+      }
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
   });

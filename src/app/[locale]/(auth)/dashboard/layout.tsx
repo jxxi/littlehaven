@@ -36,3 +36,6 @@ export default function DashboardLayout(props: { children: React.ReactNode }) {
 }
 
 export const dynamic = 'force-dynamic';
+
+// Force Node.js runtime to avoid Edge Runtime issues
+export const runtime = 'nodejs';

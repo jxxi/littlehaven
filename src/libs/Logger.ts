@@ -6,7 +6,16 @@ import { Env } from './Env';
 
 let stream: DestinationStream;
 
-if (Env.LOGTAIL_SOURCE_TOKEN) {
+// Check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
+
+if (isBrowser) {
+  // Client-side: use console-based logging
+  stream = pretty({
+    colorize: true,
+  });
+} else if (Env.LOGTAIL_SOURCE_TOKEN) {
+  // Server-side with Logtail
   stream = pino.multistream([
     await logtail({
       sourceToken: Env.LOGTAIL_SOURCE_TOKEN,
@@ -19,6 +28,7 @@ if (Env.LOGTAIL_SOURCE_TOKEN) {
     },
   ]);
 } else {
+  // Server-side without Logtail
   stream = pretty({
     colorize: true,
   });

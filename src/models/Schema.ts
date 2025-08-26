@@ -104,6 +104,10 @@ export const messagesSchema = pgTable('messages', {
     .references(() => channelSchema.channelId, { onDelete: 'cascade' }),
   userId: varchar('user_id', { length: 100 }).notNull(),
   content: text('content').notNull(),
+  encryptedContent: text('encrypted_content'), // Encrypted message content
+  encryptionKeyId: varchar('encryption_key_id', { length: 255 }), // Key identifier
+  encryptionIv: text('encryption_iv'), // IV for AES-GCM (base64 encoded)
+  isEncrypted: boolean('is_encrypted').default(false), // Flag for encrypted messages
   isTts: boolean('is_tts').default(false),
   mediaUrl: text('media_url'),
   mediaType: text('media_type'),
@@ -250,6 +254,25 @@ export const waitlistSchema = pgTable('waitlist', {
 
 export type InsertSignup = typeof waitlistSchema.$inferInsert;
 export type SelectSignup = typeof waitlistSchema.$inferSelect;
+
+export const encryptionKeysSchema = pgTable('encryption_keys', {
+  keyId: varchar('key_id', { length: 255 }).primaryKey(),
+  circleId: uuid('circle_id')
+    .notNull()
+    .references(() => circlesSchema.circleId, { onDelete: 'cascade' }),
+  channelId: uuid('channel_id')
+    .notNull()
+    .references(() => channelSchema.channelId, { onDelete: 'cascade' }),
+  keyData: text('key_data').notNull(), // Base64 encoded key bytes
+  algorithm: varchar('algorithm', { length: 20 }).notNull().default('AES-GCM'),
+  keyLength: integer('key_length').notNull().default(256),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at'),
+  isActive: boolean('is_active').default(true),
+});
+
+export type InsertEncryptionKey = typeof encryptionKeysSchema.$inferInsert;
+export type SelectEncryptionKey = typeof encryptionKeysSchema.$inferSelect;
 
 export const circlesRelations = relations(circlesSchema, ({ many }) => ({
   members: many(circleMembersSchema),

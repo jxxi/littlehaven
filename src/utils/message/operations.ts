@@ -20,6 +20,10 @@ export async function createMessage(
   thumbnailUrl?: string,
   isTts?: boolean,
   replyToMessageId?: string,
+  encryptedContent?: string,
+  encryptionKeyId?: string,
+  encryptionIv?: string,
+  isEncrypted?: boolean,
 ) {
   try {
     const [newMessage] = await db
@@ -28,7 +32,11 @@ export async function createMessage(
         circleId,
         channelId,
         userId,
-        content,
+        content: isEncrypted ? '' : content, // Store empty content for encrypted messages
+        encryptedContent,
+        encryptionKeyId,
+        encryptionIv,
+        isEncrypted: isEncrypted || false,
         isTts: isTts || false,
         mediaUrl,
         mediaType,
