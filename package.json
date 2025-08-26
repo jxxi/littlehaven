@@ -76,14 +76,14 @@
     "svix": "^1.41.0",
     "tailwind-merge": "^2.4.0",
     "uuid": "^11.1.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@next/bundle-analyzer": "^14.2.5"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",
     "@commitlint/config-conventional": "^19.2.2",
     "@commitlint/cz-commitlint": "^19.2.0",
     "@faker-js/faker": "^8.4.1",
-    "@next/bundle-analyzer": "^14.2.5",
     "@percy/cli": "1.29.0",
     "@percy/playwright": "^1.0.6",
     "@playwright/test": "^1.45.3",
