@@ -233,7 +233,7 @@ export function useEncryption(channelId?: string) {
         setIsLoading(false);
       }
     },
-    [generateNewKey, shareKey, socket],
+    [socket], // Only socket dependency needed
   );
 
   // Initialize encryption for channel
@@ -269,7 +269,7 @@ export function useEncryption(channelId?: string) {
         setIsLoading(false);
       }
     },
-    [loadChannelKey, generateNewKey, rotateKey],
+    [], // No dependencies needed - these are stable functions
   );
 
   // Listen for key sharing events
