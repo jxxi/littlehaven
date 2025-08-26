@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { auth } from '@clerk/nextjs/server';
 import { Redis } from '@upstash/redis';
 import type { NextRequest } from 'next/server';
@@ -55,11 +56,18 @@ export async function POST(request: NextRequest) {
     const keyId = `${KEY_PREFIX}${channelId}_${userId}`;
 
     if (redis) {
-      await redis.setex(keyId, KEY_TTL, JSON.stringify(keyData));
+      // Ensure we're storing a JSON string, not an object
+      const keyDataString = JSON.stringify(keyData);
+      await redis.setex(keyId, KEY_TTL, keyDataString);
+      console.log('Stored key in Redis:', {
+        keyId,
+        keyDataString: `${keyDataString.substring(0, 100)}...`,
+      });
     } else {
       // Fallback to in-memory storage
       const expiresAt = Date.now() + KEY_TTL * 1000;
       inMemoryStorage.set(keyId, { data: JSON.stringify(keyData), expiresAt });
+      console.log('Stored key in memory:', { keyId });
     }
 
     return NextResponse.json({ success: true, keyId });
@@ -89,6 +97,61 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Check if we need to clean up corrupted keys
+    const cleanupKey = `${KEY_PREFIX}${channelId}_${userId}_cleanup`;
+    const needsCleanup = await redis?.get(cleanupKey);
+
+    if (!needsCleanup && redis) {
+      // Try to clean up any corrupted keys for this user
+      try {
+        // Clean up corrupted keys for this specific channel
+        const channelPattern = `${KEY_PREFIX}${channelId}_*`;
+        const channelKeys = await redis.keys(channelPattern);
+
+        await Promise.all(
+          channelKeys.map(async (key) => {
+            const value = await redis.get(key);
+            if (value && typeof value === 'object') {
+              console.log('Found corrupted channel key, cleaning up:', {
+                key,
+                valueType: typeof value,
+              });
+              await redis.del(key);
+            }
+          }),
+        );
+
+        // Also clean up any corrupted keys for this user across all channels
+        const userPattern = `${KEY_PREFIX}*_${userId}`;
+        const userKeys = await redis.keys(userPattern);
+
+        await Promise.all(
+          userKeys.map(async (key) => {
+            const value = await redis.get(key);
+            if (value && typeof value === 'object') {
+              console.log('Found corrupted user key, cleaning up:', {
+                key,
+                valueType: typeof value,
+              });
+              await redis.del(key);
+            }
+          }),
+        );
+
+        // Mark cleanup as done
+        await redis.setex(cleanupKey, 60, 'done'); // 1 minute TTL
+      } catch (cleanupError) {
+        console.error('Cleanup error:', cleanupError);
+      }
+    }
+
+    // Log the request for debugging
+    console.log('Encryption GET request:', {
+      channelId,
+      userId,
+      hasRedis: !!redis,
+    });
+
     // Retrieve shared key from Redis or in-memory storage
     const keyId = `${KEY_PREFIX}${channelId}_${userId}`;
 
@@ -96,28 +159,81 @@ export async function GET(request: NextRequest) {
 
     if (redis) {
       // Try Redis first
-      keyDataString = await redis.get<string>(keyId);
-    } else {
-      // Fallback to in-memory storage
-      const stored = inMemoryStorage.get(keyId);
-      if (stored && stored.expiresAt > Date.now()) {
-        keyDataString = stored.data;
-      } else if (stored) {
-        // Clean up expired data
-        inMemoryStorage.delete(keyId);
+      try {
+        const rawValue = await redis.get(keyId);
+        console.log('Redis raw lookup result:', {
+          keyId,
+          found: !!rawValue,
+          type: typeof rawValue,
+          isString: typeof rawValue === 'string',
+          isObject: typeof rawValue === 'object',
+        });
+
+        // Handle different types of stored values
+        if (typeof rawValue === 'string') {
+          keyDataString = rawValue;
+        } else if (typeof rawValue === 'object' && rawValue !== null) {
+          // Found an object - this is corrupted data, clean it up
+          console.log('Found corrupted object in Redis, cleaning up:', {
+            keyId,
+            rawValue,
+          });
+          await redis.del(keyId);
+          keyDataString = null;
+        } else {
+          keyDataString = null;
+        }
+
+        if (keyDataString) {
+          console.log('Redis lookup success:', {
+            keyId,
+            length: keyDataString.length,
+            preview: keyDataString.substring(0, 100),
+          });
+        }
+      } catch (redisError) {
+        console.error('Redis error:', redisError);
+        // Fall back to in-memory storage
       }
     }
 
     if (!keyDataString) {
+      // Fallback to in-memory storage
+      const stored = inMemoryStorage.get(keyId);
+      if (stored && stored.expiresAt > Date.now()) {
+        keyDataString = stored.data;
+        console.log('In-memory storage lookup result:', {
+          keyId,
+          found: !!keyDataString,
+        });
+      } else if (stored) {
+        // Clean up expired data
+        inMemoryStorage.delete(keyId);
+        console.log('Cleaned up expired key:', keyId);
+      }
+    }
+
+    if (!keyDataString) {
+      console.log('No key found for:', { keyId, channelId, userId });
       return NextResponse.json(
         { error: 'No shared key found' },
         { status: 404 },
       );
     }
 
-    const keyData = JSON.parse(keyDataString);
-    return NextResponse.json({ keyData });
+    try {
+      const keyData = JSON.parse(keyDataString);
+      console.log('Successfully retrieved key data for:', keyId);
+      return NextResponse.json({ keyData });
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return NextResponse.json(
+        { error: 'Invalid key data format' },
+        { status: 500 },
+      );
+    }
   } catch (error) {
+    console.error('Encryption API error:', error);
     logError('Error in encryption API route', error);
 
     // Provide more specific error messages

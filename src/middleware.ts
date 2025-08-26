@@ -22,11 +22,16 @@ export default function middleware(
   request: NextRequest,
   event: NextFetchEvent,
 ) {
+  // Handle internationalization first
+  const intlResponse = intlMiddleware(request);
+
+  // Check if this is a protected route or auth route
   if (
     request.nextUrl.pathname.includes('/sign-in') ||
     request.nextUrl.pathname.includes('/sign-up') ||
     isProtectedRoute(request)
   ) {
+    // Use Clerk middleware for protected routes
     return clerkMiddleware(async (auth, req) => {
       const authObj = await auth();
       const { userId } = authObj;
@@ -47,16 +52,15 @@ export default function middleware(
         return Response.redirect(signInUrl);
       }
 
-      return intlMiddleware(req);
+      // Return the internationalized response for protected routes
+      return intlResponse;
     })(request, event);
   }
 
-  return intlMiddleware(request);
+  // Return internationalized response for non-protected routes
+  return intlResponse;
 }
 
 export const config = {
-  matcher: ['/((?!.+\\.[\\w]+$|_next|monitoring).*)', '/', '/(api|trpc)(.*)'], // Also exclude tunnelRoute used in Sentry from the matcher
+  matcher: ['/((?!.+\\.[\\w]+$|_next|monitoring).*)', '/', '/(api|trpc)(.*)'],
 };
-
-// Force Node.js runtime for Clerk middleware
-export const runtime = 'nodejs';

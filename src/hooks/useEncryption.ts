@@ -30,6 +30,16 @@ export function useEncryption(channelId?: string) {
       const response = await fetch(
         `/api/encryption?channelId=${targetChannelId}`,
       );
+
+      if (response.status === 404) {
+        // No key exists yet - this is normal for new channels
+        clientLogger.info(
+          'No encryption key found for channel:',
+          targetChannelId,
+        );
+        return null;
+      }
+
       if (response.ok) {
         const { keyData } = await response.json();
         const key = await importKeyFromBytes(
@@ -48,12 +58,19 @@ export function useEncryption(channelId?: string) {
 
         return key;
       }
+
+      // Handle other error statuses
+      clientLogger.error(
+        'Failed to load channel key:',
+        response.status,
+        response.statusText,
+      );
       return null;
     } catch (err) {
       clientLogger.error('Error loading channel key:', err);
       return null;
     }
-  }, []);
+  }, []); // No dependencies needed since it's a pure function
 
   // Generate and store new key
   const generateNewKey = useCallback(async (targetChannelId: string) => {
@@ -92,7 +109,7 @@ export function useEncryption(channelId?: string) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, []); // No dependencies needed since it's a pure function
 
   // Encrypt message with rotation check
   const encrypt = useCallback(
@@ -226,8 +243,15 @@ export function useEncryption(channelId?: string) {
         setIsLoading(true);
         setError(null);
 
+        // Try to load existing key first
         let key = await loadChannelKey(targetChannelId);
+
         if (!key) {
+          // No key exists yet - generate a new one
+          clientLogger.info(
+            'No existing key found, generating new key for channel:',
+            targetChannelId,
+          );
           key = await generateNewKey(targetChannelId);
         } else if (shouldRotateKey(key)) {
           // Auto-rotate if key is expired
@@ -238,6 +262,7 @@ export function useEncryption(channelId?: string) {
         setChannelKey(key);
         return key;
       } catch (err) {
+        clientLogger.error('Failed to initialize encryption:', err);
         setError('Failed to initialize encryption');
         throw err;
       } finally {
