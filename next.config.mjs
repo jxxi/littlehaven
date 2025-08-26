@@ -94,12 +94,20 @@ const nextConfig = {
 
 const sentryWebpackPluginOptions = {
   silent: !process.env.CI,
-  org: 'little-haven',
-  project: 'javascript-nextjs',
+  org: process.env.SENTRY_ORG || 'little-haven',
+  project: process.env.SENTRY_PROJECT || 'javascript-nextjs',
   widenClientFileUpload: true,
   tunnelRoute: '/monitoring',
   disableLogger: true,
   automaticVercelMonitors: true,
+  // Disable source map uploads for now to avoid build errors
+  sourcemaps: {
+    disable: true,
+  },
+  // Add auth token if available
+  ...(process.env.SENTRY_AUTH_TOKEN && {
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+  }),
 };
 
 export default withSentryConfig(
