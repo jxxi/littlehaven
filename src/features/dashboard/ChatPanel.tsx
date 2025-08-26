@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import BrandLoader from '@/components/BrandLoader';
 import { GifIcon } from '@/components/icons/GifIcon';
-import { useEncryption } from '@/hooks/useEncryption';
+import { EncryptionProvider } from '@/contexts/EncryptionContext';
 import { clientLogger } from '@/libs/ClientLogger';
 import { logError } from '@/utils/Logger';
 import { getSocket } from '@/utils/socket';
@@ -14,6 +14,7 @@ import { getSocket } from '@/utils/socket';
 import type { CreateMessage, Message } from '../../types/message';
 import { ChatHeader } from './ChatHeader';
 import EmojiPicker from './EmojiPicker';
+import { EncryptionHandler } from './EncryptionHandler';
 import { GifPicker } from './GifPicker';
 import { MembersSidebar } from './MembersSidebar';
 import { Messages } from './Messages';
@@ -51,14 +52,6 @@ const ChatPanel = ({
   const replyTo = currentChannelId
     ? (replyToMap[currentChannelId] ?? null)
     : null;
-
-  // Initialize encryption for the current channel
-  const { encrypt, needsRotation, rotateKey } = useEncryption(currentChannelId);
-
-  // Update socket events to include userId
-  useEffect(() => {
-    // You can add key rotation handling here if needed
-  }, [currentChannelId, userId, rotateKey]);
 
   useEffect(() => {
     // Join the channel room when component mounts
@@ -134,112 +127,6 @@ const ChatPanel = ({
     setMessages([]);
   }, [currentChannelId]);
 
-  const handleSendMessage = async () => {
-    if (!message.trim() || !currentCircleId || !currentChannelId) {
-      // TODO: Show error notification to user
-      return;
-    }
-
-    const tempId = uuidv4();
-
-    // Encrypt message content if encryption is available
-    let encryptedContent: string | undefined;
-    let encryptionKeyId: string | undefined;
-    let isEncrypted = false;
-
-    if (encrypt) {
-      try {
-        const encrypted = await encrypt(message);
-        if (encrypted) {
-          encryptedContent = encrypted.encryptedContent;
-          encryptionKeyId = encrypted.keyId;
-          isEncrypted = true;
-        }
-      } catch (error) {
-        logError('Failed to encrypt message', error);
-
-        // Check if it's a key rotation error
-        if (
-          error instanceof Error &&
-          error.message.includes('needs rotation')
-        ) {
-          try {
-            clientLogger.info('Attempting automatic key rotation...');
-            await rotateKey(currentChannelId!);
-
-            // Retry encryption with new key
-            const encrypted = await encrypt(message);
-            if (encrypted) {
-              encryptedContent = encrypted.encryptedContent;
-              encryptionKeyId = encrypted.keyId;
-              isEncrypted = true;
-            }
-          } catch (rotationError) {
-            logError('Failed to rotate key', rotationError);
-            // Continue with unencrypted message
-          }
-        } else {
-          // Continue with unencrypted message
-        }
-      }
-    }
-
-    const tempMessage = {
-      circleId: currentCircleId!,
-      channelId: currentChannelId!,
-      userId,
-      content: isEncrypted ? '[Encrypted]' : message,
-      encryptedContent,
-      encryptionKeyId,
-      isEncrypted,
-      isTts: false,
-      replyToMessageId: replyTo?.id,
-      id: `temp-${tempId}`,
-      createdAt: new Date(),
-      user: {
-        username: userName,
-        imageUrl: userImage,
-      },
-    } as Message;
-
-    // Optimistically add message to UI
-    setMessages((prevMessages) => [...prevMessages, tempMessage]);
-
-    try {
-      const response = await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tempMessage),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to send message');
-      }
-
-      const dbMessage = await response.json();
-
-      // Update local state with DB message immediately
-      setMessages((prev) =>
-        prev.map((msg) => (msg.id === tempId ? dbMessage : msg)),
-      );
-
-      // Then emit socket for other clients
-      socket.emit('messageCreated', {
-        tempId,
-        dbMessage,
-        channelId: currentChannelId!,
-      });
-
-      setMessage('');
-      if (currentChannelId)
-        setReplyToMap((prev) => ({ ...prev, [currentChannelId]: null }));
-    } catch (error) {
-      logError('Error in ChatPanel feature', error);
-      // TODO: Show error notification to user
-    }
-  };
-
   const handleGifSelect = async (gif: { url: string; preview: string }) => {
     try {
       if (!currentCircleId || !currentChannelId) return;
@@ -305,145 +192,266 @@ const ChatPanel = ({
   };
 
   return (
-    <div className="relative flex h-full flex-row rounded-md border-2 border-growth-green bg-cream p-4 pb-20 shadow-md">
-      <div className="flex flex-1 flex-col transition-all duration-300">
-        <ChatHeader
-          onToggleMembers={() =>
-            setOpenPanel(openPanel === 'members' ? null : 'members')
-          }
-          onToggleSearch={() =>
-            setOpenPanel(openPanel === 'search' ? null : 'search')
-          }
-        />
-        {loading ? (
-          <div className="flex flex-1 items-center justify-center">
-            <BrandLoader />
-          </div>
-        ) : (
-          <Messages
-            messages={messages}
-            currentUserId={userId}
-            currentChannelId={currentChannelId}
-            onDelete={(id) =>
-              setMessages((msgs) => msgs.filter((m) => m.id !== id))
+    <EncryptionProvider channelId={currentChannelId}>
+      <EncryptionHandler>
+        {({ encrypt, needsRotation, rotateKey }) => {
+          const handleSendMessage = async () => {
+            if (!message.trim() || !currentCircleId || !currentChannelId) {
+              // TODO: Show error notification to user
+              return;
             }
-            onReply={handleSetReplyTo}
-            replyLookup={replyLookup}
-            onEdit={handleEditMessage}
-          />
-        )}
-        <div className="flex flex-row">
-          <div className="relative flex grow flex-col">
-            {replyTo && (
-              <div className="mb-2 flex items-center rounded border-l-4 border-blue-400 bg-blue-50 px-2 py-1 text-xs text-blue-800">
-                <span className="mr-2 font-semibold">
-                  Replying to {replyTo.user?.username || 'user'}:
-                </span>
-                <span className="max-w-xs truncate">{replyTo.content}</span>
-                <button
-                  className="ml-2 text-gray-400 hover:text-gray-700"
-                  type="button"
-                  aria-label="Cancel reply"
-                  onClick={() => handleSetReplyTo(null)}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-row">
-          <div className="absolute inset-x-0 bottom-0 flex items-center space-x-2 rounded-md border-t-2 border-growth-green bg-white p-4">
-            <UserButton />
 
-            {/* Key rotation warning */}
-            {needsRotation && (
-              <div className="absolute inset-x-0 -top-12 mx-4 rounded-md border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs text-yellow-800">
-                <div className="flex items-center justify-between">
-                  <span>🔐 Encryption key needs rotation</span>
-                  <button
-                    type="button"
-                    onClick={() => rotateKey(currentChannelId!)}
-                    className="text-yellow-600 underline hover:text-yellow-800"
-                  >
-                    Rotate Now
-                  </button>
+            const tempId = uuidv4();
+
+            // Encrypt message content if encryption is available
+            let encryptedContent: string | undefined;
+            let encryptionKeyId: string | undefined;
+            let isEncrypted = false;
+
+            if (encrypt) {
+              try {
+                const encrypted = await encrypt(message);
+                if (encrypted) {
+                  encryptedContent = encrypted.encryptedContent;
+                  encryptionKeyId = encrypted.keyId;
+                  isEncrypted = true;
+                }
+              } catch (error) {
+                logError('Failed to encrypt message', error);
+
+                // Check if it's a key rotation error
+                if (
+                  error instanceof Error &&
+                  error.message.includes('needs rotation')
+                ) {
+                  try {
+                    clientLogger.info('Attempting automatic key rotation...');
+                    await rotateKey(currentChannelId!);
+
+                    // Retry encryption with new key
+                    const encrypted = await encrypt(message);
+                    if (encrypted) {
+                      encryptedContent = encrypted.encryptedContent;
+                      encryptionKeyId = encrypted.keyId;
+                      isEncrypted = true;
+                    }
+                  } catch (rotationError) {
+                    logError('Failed to rotate key', rotationError);
+                    // Continue with unencrypted message
+                  }
+                } else {
+                  // Continue with unencrypted message
+                }
+              }
+            }
+
+            const tempMessage = {
+              circleId: currentCircleId!,
+              channelId: currentChannelId!,
+              userId,
+              content: isEncrypted ? '[Encrypted]' : message,
+              encryptedContent,
+              encryptionKeyId,
+              isEncrypted,
+              isTts: false,
+              replyToMessageId: replyTo?.id,
+              id: `temp-${tempId}`,
+              createdAt: new Date(),
+              user: {
+                username: userName,
+                imageUrl: userImage,
+              },
+            } as Message;
+
+            // Optimistically add message to UI
+            setMessages((prevMessages) => [...prevMessages, tempMessage]);
+
+            try {
+              const response = await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(tempMessage),
+              });
+
+              if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to send message');
+              }
+
+              const dbMessage = await response.json();
+
+              // Update local state with DB message immediately
+              setMessages((prev) =>
+                prev.map((msg) => (msg.id === tempId ? dbMessage : msg)),
+              );
+
+              // Then emit socket for other clients
+              socket.emit('messageCreated', {
+                tempId,
+                dbMessage,
+                channelId: currentChannelId!,
+              });
+
+              setMessage('');
+              if (currentChannelId)
+                setReplyToMap((prev) => ({
+                  ...prev,
+                  [currentChannelId]: null,
+                }));
+            } catch (error) {
+              logError('Error in ChatPanel feature', error);
+              // TODO: Show error notification to user
+            }
+          };
+
+          return (
+            <div className="relative flex h-full flex-row rounded-md border-2 border-growth-green bg-cream p-4 pb-20 shadow-md">
+              <div className="flex flex-1 flex-col transition-all duration-300">
+                <ChatHeader
+                  onToggleMembers={() =>
+                    setOpenPanel(openPanel === 'members' ? null : 'members')
+                  }
+                  onToggleSearch={() =>
+                    setOpenPanel(openPanel === 'search' ? null : 'search')
+                  }
+                />
+                {loading ? (
+                  <div className="flex flex-1 items-center justify-center">
+                    <BrandLoader />
+                  </div>
+                ) : (
+                  <Messages
+                    messages={messages}
+                    currentUserId={userId}
+                    currentChannelId={currentChannelId}
+                    onDelete={(id) =>
+                      setMessages((msgs) => msgs.filter((m) => m.id !== id))
+                    }
+                    onReply={handleSetReplyTo}
+                    replyLookup={replyLookup}
+                    onEdit={handleEditMessage}
+                  />
+                )}
+                <div className="flex flex-row">
+                  <div className="relative flex grow flex-col">
+                    {replyTo && (
+                      <div className="mb-2 flex items-center rounded border-l-4 border-blue-400 bg-blue-50 px-2 py-1 text-xs text-blue-800">
+                        <span className="mr-2 font-semibold">
+                          Replying to {replyTo.user?.username || 'user'}:
+                        </span>
+                        <span className="max-w-xs truncate">
+                          {replyTo.content}
+                        </span>
+                        <button
+                          className="ml-2 text-gray-400 hover:text-gray-700"
+                          type="button"
+                          aria-label="Cancel reply"
+                          onClick={() => handleSetReplyTo(null)}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-row">
+                  <div className="absolute inset-x-0 bottom-0 flex items-center space-x-2 rounded-md border-t-2 border-growth-green bg-white p-4">
+                    <UserButton />
+
+                    {/* Key rotation warning */}
+                    {needsRotation && (
+                      <div className="absolute inset-x-0 -top-12 mx-4 rounded-md border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs text-yellow-800">
+                        <div className="flex items-center justify-between">
+                          <span>🔐 Encryption key needs rotation</span>
+                          <button
+                            type="button"
+                            onClick={() => rotateKey(currentChannelId!)}
+                            className="text-yellow-600 underline hover:text-yellow-800"
+                          >
+                            Rotate Now
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <input
+                      type="text"
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder={
+                        replyTo
+                          ? `Replying to ${replyTo.user?.username || 'user'}...`
+                          : 'Message'
+                      }
+                      className="w-full rounded-md bg-gray-100 px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSendMessage();
+                        }
+                      }}
+                    />
+
+                    <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center space-x-2 text-gray-400">
+                      <EmojiPicker message={message} setMessage={setMessage} />
+                      <button
+                        type="button"
+                        aria-label="Send GIF"
+                        className="p-1 hover:text-gray-600"
+                        onClick={() => setShowGifPicker(!showGifPicker)}
+                      >
+                        <GifIcon size={20} />
+                      </button>
+                    </div>
+                  </div>
+                  {showGifPicker && (
+                    <GifPicker
+                      onSelect={handleGifSelect}
+                      onClose={() => setShowGifPicker(false)}
+                    />
+                  )}
                 </div>
               </div>
-            )}
-
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder={
-                replyTo
-                  ? `Replying to ${replyTo.user?.username || 'user'}...`
-                  : 'Message'
-              }
-              className="w-full rounded-md bg-gray-100 px-3 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSendMessage();
-                }
-              }}
-            />
-
-            <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center space-x-2 text-gray-400">
-              <EmojiPicker message={message} setMessage={setMessage} />
-              <button
-                type="button"
-                aria-label="Send GIF"
-                className="p-1 hover:text-gray-600"
-                onClick={() => setShowGifPicker(!showGifPicker)}
-              >
-                <GifIcon size={20} />
-              </button>
+              {openPanel === 'members' && (
+                <MembersSidebar
+                  members={members}
+                  onClose={() => setOpenPanel(null)}
+                />
+              )}
+              {openPanel === 'search' && (
+                <div className="z-10 flex h-full w-80 flex-col border-l bg-white shadow-lg">
+                  <SearchSidebar
+                    members={members.map((m) => ({
+                      userId: m.id,
+                      username: m.nickname ?? m.username,
+                      imageUrl: m.imageUrl,
+                    }))}
+                    messages={messages}
+                    onMemberClick={() => {
+                      /* handle member click */
+                    }}
+                    onClose={() => setOpenPanel(null)}
+                  />
+                </div>
+              )}
             </div>
-          </div>
-          {showGifPicker && (
-            <GifPicker
-              onSelect={handleGifSelect}
-              onClose={() => setShowGifPicker(false)}
-            />
-          )}
-        </div>
-      </div>
-      {openPanel === 'members' && (
-        <MembersSidebar members={members} onClose={() => setOpenPanel(null)} />
-      )}
-      {openPanel === 'search' && (
-        <div className="z-10 flex h-full w-80 flex-col border-l bg-white shadow-lg">
-          <SearchSidebar
-            members={members.map((m) => ({
-              userId: m.id,
-              username: m.nickname ?? m.username,
-              imageUrl: m.imageUrl,
-            }))}
-            messages={messages}
-            onMemberClick={() => {
-              /* handle member click */
-            }}
-            onClose={() => setOpenPanel(null)}
-            currentChannelId={currentChannelId}
-          />
-        </div>
-      )}
-    </div>
+          );
+        }}
+      </EncryptionHandler>
+    </EncryptionProvider>
   );
 };
 

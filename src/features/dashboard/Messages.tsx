@@ -4,7 +4,7 @@ import { FixedSizeList as List } from 'react-window';
 
 import BrandLoader from '@/components/BrandLoader';
 import ChatUser from '@/components/ChatUser';
-import { useEncryption } from '@/hooks/useEncryption';
+import { useEncryptionContext } from '@/contexts/EncryptionContext';
 import { clientLogger } from '@/libs/ClientLogger';
 import { formatDate } from '@/utils/Helpers';
 import { getSocket } from '@/utils/socket';
@@ -49,7 +49,7 @@ const Messages = (props: {
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Get encryption hook for decryption
-  const { decrypt } = useEncryption(currentChannelId);
+  const { decrypt } = useEncryptionContext();
   const [decryptedMessages, setDecryptedMessages] = useState<
     Record<string, string>
   >({});

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { clientLogger } from '@/libs/ClientLogger';
 import {
@@ -23,93 +23,100 @@ export function useEncryption(channelId?: string) {
   const [needsRotation, setNeedsRotation] = useState(false);
 
   const socket = getSocket();
+  const initializedChannels = useRef(new Set<string>());
 
   // Load key from API
-  const loadChannelKey = useCallback(async (targetChannelId: string) => {
-    try {
-      const response = await fetch(
-        `/api/encryption?channelId=${targetChannelId}`,
-      );
-
-      if (response.status === 404) {
-        // No key exists yet - this is normal for new channels
-        clientLogger.info(
-          'No encryption key found for channel:',
-          targetChannelId,
+  const loadChannelKey = useMemo(
+    () => async (targetChannelId: string) => {
+      try {
+        const response = await fetch(
+          `/api/encryption?channelId=${targetChannelId}`,
         );
-        return null;
-      }
 
-      if (response.ok) {
-        const { keyData } = await response.json();
-        const key = await importKeyFromBytes(
-          new Uint8Array(keyData.keyBytes).buffer,
-          keyData.keyId,
-          256,
-          keyData.createdAt ? new Date(keyData.createdAt) : undefined,
-          keyData.expiresAt ? new Date(keyData.expiresAt) : undefined,
-        );
-        setChannelKey(key);
-
-        // Check if key needs rotation
-        if (shouldRotateKey(key)) {
-          setNeedsRotation(true);
+        if (response.status === 404) {
+          // No key exists yet - this is normal for new channels
+          clientLogger.info(
+            'No encryption key found for channel:',
+            targetChannelId,
+          );
+          return null;
         }
 
-        return key;
-      }
+        if (response.ok) {
+          const { keyData } = await response.json();
+          const key = await importKeyFromBytes(
+            new Uint8Array(keyData.keyBytes).buffer,
+            keyData.keyId,
+            256,
+            keyData.createdAt ? new Date(keyData.createdAt) : undefined,
+            keyData.expiresAt ? new Date(keyData.expiresAt) : undefined,
+          );
+          setChannelKey(key);
 
-      // Handle other error statuses
-      clientLogger.error(
-        'Failed to load channel key:',
-        response.status,
-        response.statusText,
-      );
-      return null;
-    } catch (err) {
-      clientLogger.error('Error loading channel key:', err);
-      return null;
-    }
-  }, []); // No dependencies needed since it's a pure function
+          // Check if key needs rotation
+          if (shouldRotateKey(key)) {
+            setNeedsRotation(true);
+          }
+
+          return key;
+        }
+
+        // Handle other error statuses
+        clientLogger.error(
+          'Failed to load channel key:',
+          response.status,
+          response.statusText,
+        );
+        return null;
+      } catch (err) {
+        clientLogger.error('Error loading channel key:', err);
+        return null;
+      }
+    },
+    [],
+  ); // No dependencies needed since it's a pure function
 
   // Generate and store new key
-  const generateNewKey = useCallback(async (targetChannelId: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  const generateNewKey = useMemo(
+    () => async (targetChannelId: string) => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      const newKey = await generateChannelKey();
-      const keyBytes = await exportKeyToBytes(newKey);
+        const newKey = await generateChannelKey();
+        const keyBytes = await exportKeyToBytes(newKey);
 
-      // Store key via API
-      const keyData = {
-        keyBytes: Array.from(new Uint8Array(keyBytes)),
-        keyId: newKey.id,
-        keyLength: newKey.keyLength,
-        createdAt: newKey.createdAt.toISOString(),
-        expiresAt: newKey.expiresAt?.toISOString(),
-      };
+        // Store key via API
+        const keyData = {
+          keyBytes: Array.from(new Uint8Array(keyBytes)),
+          keyId: newKey.id,
+          keyLength: newKey.keyLength,
+          createdAt: newKey.createdAt.toISOString(),
+          expiresAt: newKey.expiresAt?.toISOString(),
+        };
 
-      const response = await fetch('/api/encryption', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channelId: targetChannelId, keyData }),
-      });
+        const response = await fetch('/api/encryption', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channelId: targetChannelId, keyData }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to store encryption key');
+        if (!response.ok) {
+          throw new Error('Failed to store encryption key');
+        }
+
+        setChannelKey(newKey);
+        setNeedsRotation(false);
+        return newKey;
+      } catch (err) {
+        setError('Failed to generate encryption key');
+        throw err;
+      } finally {
+        setIsLoading(false);
       }
-
-      setChannelKey(newKey);
-      setNeedsRotation(false);
-      return newKey;
-    } catch (err) {
-      setError('Failed to generate encryption key');
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []); // No dependencies needed since it's a pure function
+    },
+    [],
+  ); // No dependencies needed since it's a pure function
 
   // Encrypt message with rotation check
   const encrypt = useCallback(
@@ -190,8 +197,8 @@ export function useEncryption(channelId?: string) {
   }, [channelKey]);
 
   // Rotate key automatically
-  const rotateKey = useCallback(
-    async (targetChannelId: string) => {
+  const rotateKey = useMemo(
+    () => async (targetChannelId: string) => {
       try {
         setIsLoading(true);
         setError(null);
@@ -233,7 +240,7 @@ export function useEncryption(channelId?: string) {
         setIsLoading(false);
       }
     },
-    [socket], // Only socket dependency needed
+    [generateNewKey, shareKey, socket],
   );
 
   // Initialize encryption for channel
@@ -269,7 +276,7 @@ export function useEncryption(channelId?: string) {
         setIsLoading(false);
       }
     },
-    [], // No dependencies needed - these are stable functions
+    [loadChannelKey, generateNewKey, rotateKey], // Include all dependencies
   );
 
   // Listen for key sharing events
@@ -344,7 +351,8 @@ export function useEncryption(channelId?: string) {
 
   // Load key when channelId changes
   useEffect(() => {
-    if (channelId) {
+    if (channelId && !initializedChannels.current.has(channelId)) {
+      initializedChannels.current.add(channelId);
       initializeEncryption(channelId);
     }
   }, [channelId, initializeEncryption]);

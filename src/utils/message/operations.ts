@@ -230,21 +230,44 @@ export async function getAllReactionsForMessage(messageId: string) {
 }
 
 async function getMessagesWithUsers(messages: any[]): Promise<any[]> {
-  // Get user information for each message
+  if (messages.length === 0) return messages;
+
+  // Get unique user IDs to avoid duplicate API calls
+  const uniqueUserIds = [...new Set(messages.map((msg) => msg.userId))];
+
+  // Batch fetch all users at once
   const client = await clerkClient();
-  const messagesWithUsers = await Promise.all(
-    messages.map(async (message) => {
-      const user = await client.users.getUser(message.userId);
-      return {
-        ...message,
-        user: {
+  const users = await Promise.all(
+    uniqueUserIds.map(async (userId) => {
+      try {
+        const user = await client.users.getUser(userId);
+        return {
+          userId,
           username: user.username || 'Unknown User',
           imageUrl: user.imageUrl,
-        },
-      };
+        };
+      } catch (error) {
+        console.warn(`Failed to fetch user ${userId}:`, error);
+        return {
+          userId,
+          username: 'Unknown User',
+          imageUrl: null,
+        };
+      }
     }),
   );
-  return messagesWithUsers;
+
+  // Create a map for fast lookups
+  const userMap = new Map(users.map((user) => [user.userId, user]));
+
+  // Attach user data to messages
+  return messages.map((message) => ({
+    ...message,
+    user: userMap.get(message.userId) || {
+      username: 'Unknown User',
+      imageUrl: null,
+    },
+  }));
 }
 
 export async function getAllMessagesWithReactionsForChannel(

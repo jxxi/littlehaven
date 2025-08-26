@@ -54,15 +54,15 @@ export async function POST(request: NextRequest) {
 
     // Store the shared key in Redis
     const keyId = `${KEY_PREFIX}${channelId}_${userId}`;
+    console.log('Storing key in Redis:', {
+      keyId,
+      keyData,
+    });
 
     if (redis) {
       // Ensure we're storing a JSON string, not an object
       const keyDataString = JSON.stringify(keyData);
       await redis.setex(keyId, KEY_TTL, keyDataString);
-      console.log('Stored key in Redis:', {
-        keyId,
-        keyDataString: `${keyDataString.substring(0, 100)}...`,
-      });
     } else {
       // Fallback to in-memory storage
       const expiresAt = Date.now() + KEY_TTL * 1000;

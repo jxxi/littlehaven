@@ -1,23 +1,17 @@
 import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 
-import { useEncryption } from '@/hooks/useEncryption';
+import { useEncryptionContext } from '@/contexts/EncryptionContext';
 import { clientLogger } from '@/libs/ClientLogger';
 
-export function SearchSidebar({
-  members,
-  messages,
-  onMemberClick,
-  onClose,
-  currentChannelId,
-}) {
+export function SearchSidebar({ members, messages, onMemberClick, onClose }) {
   const [search, setSearch] = useState('');
   const [decryptedMessages, setDecryptedMessages] = useState<
     Record<string, string>
   >({});
 
   // Get encryption hook for decryption
-  const { decrypt } = useEncryption(currentChannelId);
+  const { decrypt } = useEncryptionContext();
 
   // Decrypt encrypted messages
   const decryptMessage = useCallback(
