@@ -53,3 +53,5 @@ local
 
 # Sentry Config File
 .env.sentry-build-plugin
+.env
+socket-server/.env
