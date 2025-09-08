@@ -18,47 +18,22 @@ const isProtectedRoute = createRouteMatcher([
   '/api(.*)',
 ]);
 
+const isAuthRoute = (pathname: string) =>
+  pathname.includes('/sign-in') || pathname.includes('/sign-up');
+
 export default function middleware(
   request: NextRequest,
   event: NextFetchEvent,
 ) {
-  // Handle internationalization first
-  const intlResponse = intlMiddleware(request);
+  const { pathname } = request.nextUrl;
 
-  // Check if this is a protected route or auth route
-  if (
-    request.nextUrl.pathname.includes('/sign-in') ||
-    request.nextUrl.pathname.includes('/sign-up') ||
-    isProtectedRoute(request)
-  ) {
-    // Use Clerk middleware for protected routes
-    return clerkMiddleware(async (auth, req) => {
-      const authObj = await auth();
-      const { userId } = authObj;
-
-      // If user is authenticated and trying to access sign-up, redirect to dashboard
-      if (userId && req.nextUrl.pathname.includes('/sign-up')) {
-        const locale =
-          req.nextUrl.pathname.match(/(\/.*)\/sign-up/)?.at(1) ?? '';
-        const dashboardUrl = new URL(`${locale}/dashboard`, req.url);
-        return Response.redirect(dashboardUrl);
-      }
-
-      // If trying to access protected route without auth, redirect to sign-in
-      if (!userId && isProtectedRoute(req)) {
-        const locale =
-          req.nextUrl.pathname.match(/(\/.*)\/dashboard/)?.at(1) ?? '';
-        const signInUrl = new URL(`${locale}/sign-in`, req.url);
-        return Response.redirect(signInUrl);
-      }
-
-      // Return the internationalized response for protected routes
-      return intlResponse;
-    })(request, event);
+  // For auth routes and protected routes, use Clerk middleware directly
+  if (isAuthRoute(pathname) || isProtectedRoute(request)) {
+    return clerkMiddleware()(request, event);
   }
 
-  // Return internationalized response for non-protected routes
-  return intlResponse;
+  // For non-protected routes, use internationalization middleware
+  return intlMiddleware(request);
 }
 
 export const config = {
